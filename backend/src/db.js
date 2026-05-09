@@ -1,4 +1,4 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 const path = require('path');
 
 // Intentar cargar variables desde el archivo .env si existe localmente
@@ -43,7 +43,7 @@ console.log('DB config:', {
     database: dbConfig.database
 });
 
-const pool = mysql.createPool(dbConfig).promise();
+const pool = mysql.createPool(dbConfig);
 
 async function initDatabase() {
     try {
@@ -105,4 +105,4 @@ async function initDatabase() {
 
 initDatabase();
 
-module.exports = pool.promise();
+module.exports = pool;
