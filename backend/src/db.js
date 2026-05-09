@@ -1,18 +1,54 @@
-const mysql = require("mysql2/promise");
+const mysql = require('mysql2');
+const path = require('path');
 
-const pool = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "olvida",
-    database: "tienda_celulares",
+// Intentar cargar variables desde el archivo .env si existe localmente
+require('dotenv').config();
+
+const requiredEnv = [
+    'DB_HOST',
+    'DB_USER',
+    'DB_PASSWORD',
+    'DB_NAME',
+    'DB_PORT'
+];
+
+const missingEnv = requiredEnv.filter((name) => !process.env[name]);
+if (missingEnv.length > 0) {
+    console.error(`❌ Faltan variables de entorno: ${missingEnv.join(', ')}`);
+    console.error('Configura estas variables en Render Dashboard o en tu archivo .env local.');
+    console.error('DB config actual:', {
+        host: process.env.DB_HOST || null,
+        user: process.env.DB_USER || null,
+        database: process.env.DB_NAME || null,
+        port: process.env.DB_PORT || null
+    });
+    throw new Error(`Faltan variables de entorno: ${missingEnv.join(', ')}`);
+}
+
+const dbConfig = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: Number(process.env.DB_PORT),
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
+};
+
+console.log('DB config:', {
+    host: dbConfig.host,
+    port: dbConfig.port,
+    user: dbConfig.user,
+    database: dbConfig.database
 });
+
+const pool = mysql.createPool(dbConfig);
 
 async function initDatabase() {
     try {
         const connection = await pool.getConnection();
+        console.log("🛰️ Intentando conectar a Railway...");
 
         await connection.query(`
             CREATE TABLE IF NOT EXISTS usuarios (
@@ -58,33 +94,15 @@ async function initDatabase() {
                 FOREIGN KEY (id_venta) REFERENCES ventas(id_venta),
                 FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
             )
-        `);
-
-        const [idUsuarioCol] = await connection.query(
-            "SHOW COLUMNS FROM productos LIKE 'id_usuario'"
-        );
-        if (!idUsuarioCol.length) {
-            await connection.query(
-                "ALTER TABLE productos ADD COLUMN id_usuario INT NOT NULL AFTER id_producto"
-            );
-        }
-
-        const [imagenCol] = await connection.query(
-            "SHOW COLUMNS FROM productos LIKE 'imagen'"
-        );
-        if (!imagenCol.length) {
-            await connection.query(
-                "ALTER TABLE productos ADD COLUMN imagen VARCHAR(255) NULL AFTER stock"
-            );
-        }
+        `)
 
         connection.release();
-        console.log("Base de datos inicializada");
+        console.log("✅ Base de datos de Railway conectada e inicializada");
     } catch (err) {
-        console.error("Error inicializando la base de datos:", err);
+        console.error("❌ Error crítico de conexión:", err.message);
     }
 }
 
 initDatabase();
 
-module.exports = pool;
+module.exports = pool.promise();
