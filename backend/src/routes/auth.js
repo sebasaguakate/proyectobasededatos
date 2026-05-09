@@ -72,8 +72,6 @@ router.post("/login", async (req, res) => {
 
     if (!correo || !correo.trim()) {
         errors.correo = "El correo es obligatorio";
-    } else if (!/^\\S+@\\S+\\.\\S+$/.test(correo)) {
-        errors.correo = "El correo no es válido";
     }
     if (!contraseña || !contraseña.trim()) {
         errors.contraseña = "La contraseña es obligatoria";
@@ -82,7 +80,7 @@ router.post("/login", async (req, res) => {
     if (Object.keys(errors).length > 0) {
         return res.status(400).json({
             success: false,
-            message: "Datos incompletos",
+            message: "Por favor, completa todos los campos",
             errors
         });
     }
@@ -101,7 +99,7 @@ router.post("/login", async (req, res) => {
         } else {
             res.json({
                 success: false,
-                message: "Credenciales incorrectas",
+                message: "Correo o contraseña incorrectos",
                 errors: {
                     general: "Correo o contraseña incorrectos"
                 }
