@@ -21,6 +21,7 @@ function hideNotification() {
 // ==========================
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 let productosGlobal = [];
+let usuario = JSON.parse(localStorage.getItem("usuario"));
 
 // ==========================
 // 📦 CARGAR PRODUCTOS
@@ -552,6 +553,11 @@ async function simularCompra() {
 // ==========================
 // 🚀 INIT
 // ==========================
+if (!usuario) {
+    window.location.href = "login.html";
+    return;
+}
+
 cargarProductos();
 
 renderCarrito();
