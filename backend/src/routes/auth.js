@@ -6,8 +6,47 @@ const pool = require("../db");
 // REGISTRO
 router.post("/register", async (req, res) => {
     const { nombre, apellido, correo, contraseña } = req.body;
+    const errors = {};
+
+    if (!nombre || !nombre.trim()) {
+        errors.nombre = "El nombre es obligatorio";
+    }
+    if (!apellido || !apellido.trim()) {
+        errors.apellido = "El apellido es obligatorio";
+    }
+    if (!correo || !correo.trim()) {
+        errors.correo = "El correo es obligatorio";
+    } else if (!/^\S+@\S+\.\S+$/.test(correo)) {
+        errors.correo = "El correo no es válido";
+    }
+    if (!contraseña || !contraseña.trim()) {
+        errors.contraseña = "La contraseña es obligatoria";
+    }
+
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Datos incompletos",
+            errors
+        });
+    }
 
     try {
+        const [existing] = await pool.query(
+            `SELECT id_usuario FROM usuarios WHERE correo = ?`,
+            [correo]
+        );
+
+        if (existing.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: "El correo ya está en uso",
+                errors: {
+                    correo: "Ya existe un usuario con este correo"
+                }
+            });
+        }
+
         await pool.query(
             `INSERT INTO usuarios (nombre, apellido, correo, contraseña) VALUES (?, ?, ?, ?)`,
             [nombre, apellido, correo, contraseña]

@@ -16,8 +16,13 @@ form.addEventListener("submit", async (e) => {
         contraseña: document.getElementById("contraseña").value
     };
 
+    const errorBox = document.getElementById("registerError");
+    errorBox.classList.add("d-none");
+    errorBox.textContent = "";
+
     try {
-        const res = await fetch("http://localhost:3000/auth/register", {
+        const url = window.location.origin + "/auth/register";
+        const res = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -30,11 +35,24 @@ form.addEventListener("submit", async (e) => {
         if (data.success) {
             alert("✅ Registro exitoso. Ahora inicia sesión.");
             window.location.href = "login.html";
-        } else {
-            alert(data.message || "Error registrando usuario");
+            return;
         }
+
+        const messages = [];
+        if (data.errors) {
+            Object.values(data.errors).forEach((msg) => {
+                if (msg) messages.push(msg);
+            });
+        }
+        if (data.message) {
+            messages.push(data.message);
+        }
+
+        errorBox.textContent = messages.join(" \n");
+        errorBox.classList.remove("d-none");
     } catch (error) {
         console.error(error);
-        alert("Error del servidor");
+        errorBox.textContent = "Error del servidor. Intenta nuevamente.";
+        errorBox.classList.remove("d-none");
     }
 });
