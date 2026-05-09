@@ -1,3 +1,21 @@
+// ==========================
+// � NOTIFICACIONES
+// ==========================
+function showNotification(message) {
+    const notif = document.getElementById('notification');
+    const msg = document.getElementById('notificationMessage');
+    msg.textContent = message;
+    notif.classList.remove('d-none');
+    setTimeout(() => {
+        hideNotification();
+    }, 5000);
+}
+
+function hideNotification() {
+    const notif = document.getElementById('notification');
+    notif.classList.add('d-none');
+}
+
 const usuarioLogeado = JSON.parse(localStorage.getItem("usuario"));
 
 if (usuarioLogeado) {
