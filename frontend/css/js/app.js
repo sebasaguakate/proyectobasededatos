@@ -219,17 +219,21 @@ function renderCarrito() {
 
     carrito.forEach((item, index) => {
 
-        total += item.precio * item.cantidad;
+        const producto = productosGlobal.find(p => p.id_producto === item.id);
+        const stockInsuficiente = !producto || producto.stock < item.cantidad;
+        const claseRoja = stockInsuficiente ? 'text-danger' : '';
 
+        total += item.precio * item.cantidad;
         cantidadTotal += item.cantidad;
 
         cont.innerHTML += `
 
-        <div class="d-flex justify-content-between align-items-center border p-2 mb-2 rounded">
+        <div class="d-flex justify-content-between align-items-center border p-2 mb-2 rounded ${claseRoja}">
 
             <div>
                 ${item.nombre}
                 x${item.cantidad}
+                ${stockInsuficiente ? '(Sin stock disponible)' : ''}
             </div>
 
             <div>
