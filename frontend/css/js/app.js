@@ -20,7 +20,7 @@ async function cargarProductos() {
 
     try {
 
-        const res = await fetch("http://localhost:3000/productos");
+        const res = await fetch(window.location.origin + "/productos");
 
         const productos = await res.json();
 
@@ -43,7 +43,7 @@ function mostrarProductos(productos) {
 
     cont.innerHTML = "";
 
-    productos.forEach(p => {
+    productos.filter(p => p.stock > 0).forEach(p => {
 
         cont.innerHTML += `
         
@@ -327,7 +327,7 @@ if (form) {
         try {
 
             await fetch(
-                "http://localhost:3000/productos",
+                window.location.origin + "/productos",
                 {
                     method: "POST",
                     headers: {
@@ -380,7 +380,7 @@ async function eliminarProducto(id) {
     try {
 
         await fetch(
-            `http://localhost:3000/productos/${id}`,
+            window.location.origin + `/productos/${id}`,
             {
                 method: "DELETE"
             }
@@ -440,7 +440,7 @@ async function editarProducto(
     try {
 
         await fetch(
-            `http://localhost:3000/productos/${id}`,
+            window.location.origin + `/productos/${id}`,
             {
                 method: "PUT",
 
@@ -506,7 +506,7 @@ async function simularCompra() {
     }
 
     try {
-        const response = await fetch("http://localhost:3000/comprar", {
+        const response = await fetch(window.location.origin + "/comprar", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
