@@ -92,7 +92,7 @@ app.post("/comprar", async (req, res) => {
 // =========================
 //  SERVIR FRONTEND
 // =========================
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(__dirname, "../../frontend")));
 
 // =========================
 //  INICIAR SERVIDOR
