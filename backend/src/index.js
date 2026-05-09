@@ -1,8 +1,11 @@
+require("dotenv").config(); // <--- ESTO DEBE SER LA LÍNEA 1
+
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-const pool = require("./db");
+// Ahora que dotenv ya cargó las variables, podemos importar el pool
+const pool = require("./db"); 
 
 const app = express();
 app.use(cors());
@@ -97,6 +100,8 @@ app.use(express.static(path.join(__dirname, "../../frontend")));
 // =========================
 //  INICIAR SERVIDOR
 // =========================
-app.listen(3000, () => {
-    console.log("Servidor en http://localhost:3000");
+// Render asigna un puerto dinámico, usamos process.env.PORT
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
