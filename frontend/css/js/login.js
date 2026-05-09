@@ -31,9 +31,11 @@ form.addEventListener("submit", async (e) => {
         const data = await res.json();
 
         if (data.success) {
-            alert("✅ Login correcto");
+            showNotification("Sesión iniciada correctamente");
             localStorage.setItem("usuario", JSON.stringify(data.usuario));
-            window.location.href = "index.html";
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 2000);
             return;
         }
 

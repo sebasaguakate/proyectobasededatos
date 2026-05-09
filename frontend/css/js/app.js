@@ -1,10 +1,19 @@
 // ==========================
-// 👤 SESIÓN
+// � NOTIFICACIONES
 // ==========================
-const usuario = JSON.parse(localStorage.getItem("usuario"));
+function showNotification(message) {
+    const notif = document.getElementById('notification');
+    const msg = document.getElementById('notificationMessage');
+    msg.textContent = message;
+    notif.classList.remove('d-none');
+    setTimeout(() => {
+        hideNotification();
+    }, 5000);
+}
 
-if (!usuario) {
-    window.location.href = "login.html";
+function hideNotification() {
+    const notif = document.getElementById('notification');
+    notif.classList.add('d-none');
 }
 
 // ==========================
@@ -160,7 +169,7 @@ function agregar(id, precio) {
 
     renderCarrito();
 
-    alert("Producto agregado al carrito");
+    showNotification("Producto agregado al carrito");
 }
 
 // ==========================
@@ -531,7 +540,7 @@ async function simularCompra() {
             return alert(data.message || "No se pudo completar la compra");
         }
 
-        alert("✅ Compra realizada correctamente");
+        showNotification("Compra realizada correctamente");
         vaciarCarrito();
         cargarProductos();
     } catch (error) {

@@ -33,8 +33,10 @@ form.addEventListener("submit", async (e) => {
         const data = await res.json();
 
         if (data.success) {
-            alert("✅ Registro exitoso. Ahora inicia sesión.");
-            window.location.href = "login.html";
+            showNotification("Registro exitoso. Ahora inicia sesión.");
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 2000);
             return;
         }
 

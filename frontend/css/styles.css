@@ -291,13 +291,16 @@ small {
     border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.ad-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.14);
-    border-radius: 24px;
-    padding: 1.2rem;
-    display: flex;
+.notification {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    min-width: 300px;
+    max-width: 500px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
     flex-direction: column;
     justify-content: space-between;
 }
