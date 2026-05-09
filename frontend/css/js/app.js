@@ -342,13 +342,21 @@ if (form) {
 
         try {
 
-            await fetch(
+            const response = await fetch(
                 window.location.origin + "/productos",
                 {
                     method: "POST",
                     body: formData
                 }
             );
+
+            if (!response.ok) {
+                throw new Error('Error al publicar el producto');
+            }
+
+            const data = await response.json();
+
+            showNotification("Producto publicado exitosamente");
 
             form.reset();
             cargarProductos();
@@ -362,6 +370,7 @@ if (form) {
                 "Error agregando producto:",
                 error
             );
+            showNotification("Error al publicar el producto: " + error.message);
         }
     });
 }
@@ -501,7 +510,7 @@ const logoutBtn =
 if (logoutBtn) {
 
     logoutBtn.addEventListener("click", () => {
-
+        console.log("Logout clicked");
         localStorage.removeItem("usuario");
 
         window.location.href =
