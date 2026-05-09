@@ -43,7 +43,7 @@ console.log('DB config:', {
     database: dbConfig.database
 });
 
-const pool = mysql.createPool(dbConfig);
+const pool = mysql.createPool(dbConfig).promise();
 
 async function initDatabase() {
     try {
