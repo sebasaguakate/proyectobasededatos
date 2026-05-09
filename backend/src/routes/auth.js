@@ -68,6 +68,24 @@ router.post("/register", async (req, res) => {
 // LOGIN
 router.post("/login", async (req, res) => {
     const { correo, contraseña } = req.body;
+    const errors = {};
+
+    if (!correo || !correo.trim()) {
+        errors.correo = "El correo es obligatorio";
+    } else if (!/^\\S+@\\S+\\.\\S+$/.test(correo)) {
+        errors.correo = "El correo no es válido";
+    }
+    if (!contraseña || !contraseña.trim()) {
+        errors.contraseña = "La contraseña es obligatoria";
+    }
+
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Datos incompletos",
+            errors
+        });
+    }
 
     try {
         const [rows] = await pool.query(
@@ -83,7 +101,10 @@ router.post("/login", async (req, res) => {
         } else {
             res.json({
                 success: false,
-                message: "Credenciales incorrectas"
+                message: "Credenciales incorrectas",
+                errors: {
+                    general: "Correo o contraseña incorrectos"
+                }
             });
         }
     } catch (error) {

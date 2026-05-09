@@ -14,8 +14,13 @@ form.addEventListener("submit", async (e) => {
         contraseña: document.getElementById("contraseña").value
     };
 
+    const errorBox = document.getElementById("loginError");
+    errorBox.classList.add("d-none");
+    errorBox.textContent = "";
+
     try {
-        const res = await fetch("http://localhost:3000/auth/login", {
+        const url = window.location.origin + "/auth/login";
+        const res = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -29,11 +34,24 @@ form.addEventListener("submit", async (e) => {
             alert("✅ Login correcto");
             localStorage.setItem("usuario", JSON.stringify(data.usuario));
             window.location.href = "index.html";
-        } else {
-            alert(data.message || "Correo o contraseña incorrectos");
+            return;
         }
+
+        const messages = [];
+        if (data.errors) {
+            Object.values(data.errors).forEach((msg) => {
+                if (msg) messages.push(msg);
+            });
+        }
+        if (data.message) {
+            messages.push(data.message);
+        }
+
+        errorBox.textContent = messages.join(" \n");
+        errorBox.classList.remove("d-none");
     } catch (error) {
         console.error(error);
-        alert("Error del servidor");
+        errorBox.textContent = "Error del servidor. Intenta nuevamente.";
+        errorBox.classList.remove("d-none");
     }
 });
