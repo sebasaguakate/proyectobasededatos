@@ -314,15 +314,17 @@ if (form) {
 
         e.preventDefault();
 
-        const nuevoProducto = {
-            id_usuario: usuario.id_usuario,
-            nombre_producto: document.getElementById("nombre").value,
-            marca: document.getElementById("marca").value,
-            modelo: document.getElementById("modelo").value,
-            precio: Number(document.getElementById("precio").value),
-            stock: Number(document.getElementById("stock").value),
-            imagen: document.getElementById("imagen").value
-        };
+        const formData = new FormData();
+        formData.append('id_usuario', usuario.id_usuario);
+        formData.append('nombre_producto', document.getElementById("nombre").value);
+        formData.append('marca', document.getElementById("marca").value);
+        formData.append('modelo', document.getElementById("modelo").value);
+        formData.append('precio', Number(document.getElementById("precio").value));
+        formData.append('stock', Number(document.getElementById("stock").value));
+        const imagenInput = document.getElementById("imagen");
+        if (imagenInput.files[0]) {
+            formData.append('imagen', imagenInput.files[0]);
+        }
 
         try {
 
@@ -330,10 +332,7 @@ if (form) {
                 window.location.origin + "/productos",
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(nuevoProducto)
+                    body: formData
                 }
             );
 

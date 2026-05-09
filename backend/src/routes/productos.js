@@ -1,6 +1,21 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db");
+const multer = require('multer');
+const path = require('path');
+
+// Configurar multer para subir imágenes
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, '../../../frontend/uploads'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
 
 
 // =========================
@@ -35,7 +50,7 @@ router.get("/", async (req, res) => {
 // =========================
 // CREAR PRODUCTO
 // =========================
-router.post("/", async (req, res) => {
+router.post("/", upload.single('imagen'), async (req, res) => {
 
     const {
 
@@ -45,10 +60,11 @@ router.post("/", async (req, res) => {
         marca,
         modelo,
         precio,
-        stock,
-        imagen
+        stock
 
     } = req.body;
+
+    const imagen = req.file ? '/uploads/' + req.file.filename : null;
 
     try {
 

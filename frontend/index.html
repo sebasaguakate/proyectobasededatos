@@ -118,7 +118,7 @@
                 </button>
             </div>
 
-            <form id="formProducto">
+            <form id="formProducto" enctype="multipart/form-data">
 
                 <div class="row">
 
@@ -179,12 +179,13 @@
 
                     <!-- 🖼️ IMAGEN -->
                     <div class="col-md-12 mb-3">
-                        <label for="imagen" class="form-label">URL de la imagen</label>
+                        <label for="imagen" class="form-label">Imagen del producto</label>
                         <input
-                            type="text"
+                            type="file"
                             id="imagen"
+                            name="imagen"
                             class="form-control"
-                            placeholder="Ej: https://example.com/image.jpg"
+                            accept="image/*"
                         >
                     </div>
 
