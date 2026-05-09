@@ -564,9 +564,7 @@ async function simularCompra() {
 // ==========================
 if (!usuario) {
     window.location.href = "login.html";
-    return;
+} else {
+    cargarProductos();
+    renderCarrito();
 }
-
-cargarProductos();
-
-renderCarrito();

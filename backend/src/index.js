@@ -15,6 +15,9 @@ app.use(express.static(path.join(__dirname, "../../frontend")));
 // Servir archivos subidos
 app.use('/uploads', express.static(path.join(__dirname, "../../frontend/uploads")));
 
+// Servir assets
+app.use('/assets', express.static(path.join(__dirname, "../../frontend/assets")));
+
 // Rutas
 const authRoutes = require("./routes/auth");
 app.use("/auth", authRoutes);
