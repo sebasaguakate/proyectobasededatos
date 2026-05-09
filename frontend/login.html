@@ -19,21 +19,27 @@
         <form id="loginForm">
             <div id="loginError" class="alert alert-danger d-none" role="alert"></div>
 
-            <input
-                type="email"
-                id="correo"
-                class="form-control mb-3"
-                placeholder="Ingresa tu correo electrónico"
-                required
-            >
+            <div class="mb-3">
+                <label for="correo" class="form-label">Correo electrónico</label>
+                <input
+                    type="email"
+                    id="correo"
+                    class="form-control"
+                    placeholder="Ingresa tu correo electrónico"
+                    required
+                >
+            </div>
 
-            <input
-                type="password"
-                id="contraseña"
-                class="form-control mb-3"
-                placeholder="Ingresa tu contraseña"
-                required
-            >
+            <div class="mb-3">
+                <label for="contraseña" class="form-label">Contraseña</label>
+                <input
+                    type="password"
+                    id="contraseña"
+                    class="form-control"
+                    placeholder="Ingresa tu contraseña"
+                    required
+                >
+            </div>
 
             <button class="btn btn-dark w-100">
                 Ingresar

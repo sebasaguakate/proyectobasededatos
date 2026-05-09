@@ -19,37 +19,49 @@
         <form id="registerForm">
             <div id="registerError" class="alert alert-danger d-none" role="alert"></div>
 
-            <input
-                type="text"
-                id="nombre"
-                class="form-control mb-3"
-                placeholder="Ingresa tu nombre"
-                required
-            >
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input
+                    type="text"
+                    id="nombre"
+                    class="form-control"
+                    placeholder="Ingresa tu nombre"
+                    required
+                >
+            </div>
 
-            <input
-                type="text"
-                id="apellido"
-                class="form-control mb-3"
-                placeholder="Ingresa tu apellido"
-                required
-            >
+            <div class="mb-3">
+                <label for="apellido" class="form-label">Apellido</label>
+                <input
+                    type="text"
+                    id="apellido"
+                    class="form-control"
+                    placeholder="Ingresa tu apellido"
+                    required
+                >
+            </div>
 
-            <input
-                type="email"
-                id="correo"
-                class="form-control mb-3"
-                placeholder="Ingresa tu correo electrónico"
-                required
-            >
+            <div class="mb-3">
+                <label for="correo" class="form-label">Correo electrónico</label>
+                <input
+                    type="email"
+                    id="correo"
+                    class="form-control"
+                    placeholder="Ingresa tu correo electrónico"
+                    required
+                >
+            </div>
 
-            <input
-                type="password"
-                id="contraseña"
-                class="form-control mb-3"
-                placeholder="Crea una contraseña"
-                required
-            >
+            <div class="mb-3">
+                <label for="contraseña" class="form-label">Contraseña</label>
+                <input
+                    type="password"
+                    id="contraseña"
+                    class="form-control"
+                    placeholder="Crea una contraseña"
+                    required
+                >
+            </div>
 
             <button class="btn btn-dark w-100">
                 Registrarse
