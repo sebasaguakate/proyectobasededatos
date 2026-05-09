@@ -79,8 +79,7 @@ async function initDatabase() {
                 id_venta INT PRIMARY KEY AUTO_INCREMENT,
                 fecha DATE NOT NULL,
                 id_cliente INT NULL,
-                id_empleado INT NULL,
-                FOREIGN KEY (id_cliente) REFERENCES usuarios(id_usuario)
+                id_empleado INT NULL
             )
         `);
 
