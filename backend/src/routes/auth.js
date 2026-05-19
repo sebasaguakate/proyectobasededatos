@@ -5,7 +5,8 @@ const pool = require("../db");
 
 // REGISTRO
 router.post("/register", async (req, res) => {
-    const { nombre, apellido, correo, contraseña } = req.body;
+    const { nombre, apellido, correo, contraseña, password } = req.body;
+    const passwordValue = password || contraseña;
     const errors = {};
 
     if (!nombre || !nombre.trim()) {
@@ -19,8 +20,8 @@ router.post("/register", async (req, res) => {
     } else if (!/^\S+@\S+\.\S+$/.test(correo)) {
         errors.correo = "El correo no es válido";
     }
-    if (!contraseña || !contraseña.trim()) {
-        errors.contraseña = "La contraseña es obligatoria";
+    if (!passwordValue || !passwordValue.trim()) {
+        errors.password = "La contraseña es obligatoria";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -49,7 +50,7 @@ router.post("/register", async (req, res) => {
 
         await pool.query(
             `INSERT INTO usuarios (nombre, apellido, correo, contraseña) VALUES (?, ?, ?, ?)`,
-            [nombre, apellido, correo, contraseña]
+            [nombre, apellido, correo, passwordValue]
         );
 
         res.json({
@@ -67,14 +68,15 @@ router.post("/register", async (req, res) => {
 
 // LOGIN
 router.post("/login", async (req, res) => {
-    const { correo, contraseña } = req.body;
+    const { correo, contraseña, password } = req.body;
+    const passwordValue = password || contraseña;
     const errors = {};
 
     if (!correo || !correo.trim()) {
         errors.correo = "El correo es obligatorio";
     }
-    if (!contraseña || !contraseña.trim()) {
-        errors.contraseña = "La contraseña es obligatoria";
+    if (!passwordValue || !passwordValue.trim()) {
+        errors.password = "La contraseña es obligatoria";
     }
 
     if (Object.keys(errors).length > 0) {
@@ -88,7 +90,7 @@ router.post("/login", async (req, res) => {
     try {
         const [rows] = await pool.query(
             `SELECT * FROM usuarios WHERE correo = ? AND contraseña = ?`,
-            [correo, contraseña]
+            [correo, passwordValue]
         );
 
         if (rows.length > 0) {

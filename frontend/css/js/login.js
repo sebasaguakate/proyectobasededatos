@@ -29,7 +29,7 @@ form.addEventListener("submit", async (e) => {
 
     const datos = {
         correo: document.getElementById("correo").value,
-        contraseña: document.getElementById("contraseña").value
+        password: document.getElementById("contraseña").value
     };
 
     const errorBox = document.getElementById("loginError");

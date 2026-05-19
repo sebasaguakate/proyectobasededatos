@@ -31,7 +31,7 @@ form.addEventListener("submit", async (e) => {
         nombre: document.getElementById("nombre").value,
         apellido: document.getElementById("apellido").value,
         correo: document.getElementById("correo").value,
-        contraseña: document.getElementById("contraseña").value
+        password: document.getElementById("contraseña").value
     };
 
     const errorBox = document.getElementById("registerError");

@@ -22,119 +22,97 @@ function hideNotification() {
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 let productosGlobal = [];
 let usuario = JSON.parse(localStorage.getItem("usuario"));
+let lastSearch = "";
+let currentPage = 1;
+let pageSize = 12;
+let totalItems = 0;
 
 // ==========================
 // 📦 CARGAR PRODUCTOS
 // ==========================
-async function cargarProductos() {
+async function cargarProductos(search = "", page = 1, limit = pageSize) {
+    lastSearch = search;
+    currentPage = page;
+    pageSize = limit;
 
     try {
+        let url = window.location.origin + "/productos";
+        const params = [];
 
-        const res = await fetch(window.location.origin + "/productos");
+        if (search) params.push(`search=${encodeURIComponent(search)}`);
+        if (page) params.push(`page=${page}`);
+        if (limit) params.push(`limit=${limit}`);
+        if (params.length) url += `?${params.join('&')}`;
 
-        const productos = await res.json();
+        const res = await fetch(url);
+        const data = await res.json();
+        const productos = Array.isArray(data) ? data : (data.rows || []);
 
+        totalItems = data.total || (productos ? productos.length : 0);
         productosGlobal = productos;
 
         mostrarProductos(productos);
-
+        renderPagination(totalItems, currentPage, pageSize);
     } catch (error) {
-
         console.error("Error cargando productos:", error);
     }
 }
 
-// ==========================
+// =========================
 // 🖼️ MOSTRAR PRODUCTOS
-// ==========================
+// =========================
 function mostrarProductos(productos) {
-
     const cont = document.getElementById("productos");
-
     cont.innerHTML = "";
 
+    if (!productos || productos.length === 0) {
+        cont.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-warning">No se encontraron productos.</div>
+            </div>
+        `;
+        return;
+    }
+
     productos.filter(p => p.stock > 0).forEach(p => {
+        const imagenSrc = p.imagen || (p.imagenes && p.imagenes.length ? p.imagenes[0] : 'https://via.placeholder.com/300');
 
         cont.innerHTML += `
-        
         <div class="col-md-4 mb-4">
-
             <div class="card shadow h-100">
-
-                <img
-                    src="${p.imagen || 'https://via.placeholder.com/300'}"
-                    class="card-img-top"
-                    style="height:250px; object-fit:cover;"
-                >
-
-                <div class="card-body">
-
+                <a href="producto.html?id=${p.id_producto}" class="text-decoration-none text-dark">
+                    <img
+                        src="${imagenSrc}"
+                        class="card-img-top"
+                        style="height:250px; object-fit:cover;"
+                        alt="Imagen de ${p.nombre_producto}"
+                    >
+                </a>
+                <div class="card-body d-flex flex-column">
                     <h4 class="card-title">
-                        ${p.nombre_producto}
+                        <a href="producto.html?id=${p.id_producto}" class="text-decoration-none text-dark">
+                            ${p.nombre_producto}
+                        </a>
                     </h4>
-
-                    <p>
-                        <strong>Marca:</strong>
-                        ${p.marca}
-                    </p>
-
-                    <p>
-                        <strong>Modelo:</strong>
-                        ${p.modelo}
-                    </p>
-
-                    <p>
-                        <strong>Vendedor:</strong>
-                        ${p.nombre}
-                    </p>
-
-                    <p class="fw-bold text-success">
-                        $${p.precio}
-                    </p>
-
-                    <p class="text-muted">
-                        Stock: ${p.stock}
-                    </p>
-
-                    <button
-                        class="btn btn-success w-100 mb-2"
-                        onclick="agregar(${p.id_producto}, ${p.precio})"
-                        ${p.stock === 0 ? "disabled" : ""}
-                    >
-                        ${p.stock === 0 ? "Agotado" : "Comprar"}
-                    </button>
-
-                    <button
-                        class="btn btn-warning w-100 mb-2"
-                        onclick="editarProducto(
-                            ${p.id_producto},
-                            '${p.nombre_producto}',
-                            '${p.marca}',
-                            '${p.modelo}',
-                            ${p.precio},
-                            ${p.stock}
-                        )"
-                    >
-                        Editar
-                    </button>
-
-                    <button
-                        class="btn btn-danger w-100"
-                        onclick="eliminarProducto(${p.id_producto})"
-                    >
-                        Eliminar
-                    </button>
-
+                    <p><strong>Marca:</strong> ${p.marca}</p>
+                    <p><strong>Modelo:</strong> ${p.modelo}</p>
+                    <p><strong>Vendedor:</strong> ${p.nombre}</p>
+                    <p class="fw-bold text-success">$${p.precio}</p>
+                    <p><strong>Rating:</strong> ${p.avg_rating ? Number(p.avg_rating).toFixed(1) : '0.0'} (${p.rating_count || 0})</p>
+                    <p class="text-muted">Stock: ${p.stock}</p>
+                    <button class="btn btn-primary w-100 mb-2 mt-auto" onclick="verDetalle(${p.id_producto})">Ver detalles</button>
+                    <button class="btn btn-success w-100" onclick="agregar(${p.id_producto}, ${p.precio})" ${p.stock === 0 ? "disabled" : ""}>Agregar al carrito</button>
                 </div>
-
             </div>
-
         </div>
         `;
     });
 }
 
-// ==========================
+function verDetalle(id) {
+    window.location.href = `producto.html?id=${id}`;
+}
+
 // 🛒 AGREGAR AL CARRITO
 // ==========================
 function agregar(id, precio) {
@@ -272,23 +250,70 @@ function renderCarrito() {
 // 🔍 BUSCADOR
 // ==========================
 const buscador = document.getElementById("buscador");
+const buscarBtn = document.getElementById("buscarBtn");
+
+function realizarBusqueda(texto) {
+    const q = (texto || "").trim();
+
+    // delegado al backend para buscar entre productos de todos los usuarios
+    cargarProductos(q);
+}
 
 if (buscador) {
-
     buscador.addEventListener("input", e => {
+        // búsqueda instantánea al escribir
+        realizarBusqueda(e.target.value);
+    });
 
-        const texto = e.target.value.toLowerCase();
+    // permitir buscar con Enter
+    buscador.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            realizarBusqueda(buscador.value);
+        }
+    });
+}
 
-        const filtrados = productosGlobal.filter(p =>
+if (buscarBtn) {
+    buscarBtn.addEventListener("click", () => {
+        const texto = buscador ? buscador.value : "";
+        realizarBusqueda(texto);
+    });
+}
 
-            p.nombre_producto.toLowerCase().includes(texto)
+function renderPagination(total, page, limit) {
+    const nav = document.getElementById('paginationNav');
+    if (!nav) return;
 
-            ||
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+    let html = `<ul class="pagination justify-content-center">`;
 
-            p.marca.toLowerCase().includes(texto)
-        );
+    const createPageItem = (p, label, disabled = false, active = false) => {
+        return `<li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}"><button class="page-link" data-page="${p}" ${disabled ? 'disabled' : ''}>${label}</button></li>`;
+    };
 
-        mostrarProductos(filtrados);
+    html += createPageItem(1, '«', page === 1, page === 1);
+
+    const start = Math.max(1, page - 2);
+    const end = Math.min(totalPages, page + 2);
+
+    for (let p = start; p <= end; p++) {
+        html += createPageItem(p, p, false, p === page);
+    }
+
+    html += createPageItem(totalPages, '»', page === totalPages, page === totalPages);
+
+    html += `</ul>`;
+
+    nav.innerHTML = html;
+
+    // attach handlers
+    nav.querySelectorAll('button[data-page]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const p = parseInt(btn.getAttribute('data-page'));
+            cargarProductos(lastSearch, p, pageSize);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
     });
 }
 
@@ -339,6 +364,24 @@ if (form) {
         if (imagenInput.files[0]) {
             formData.append('imagen', imagenInput.files[0]);
         }
+
+        const imagenesInput = document.getElementById("imagenes");
+        if (imagenesInput && imagenesInput.files.length > 0) {
+            for (const file of imagenesInput.files) {
+                formData.append('imagenes', file);
+            }
+        }
+
+        // campos adicionales
+        formData.append('descripcion', document.getElementById('descripcion').value);
+        formData.append('condicion', document.getElementById('condicion').value);
+        formData.append('color', document.getElementById('color').value);
+        formData.append('almacenamiento', document.getElementById('almacenamiento').value);
+        formData.append('categoria', document.getElementById('categoria').value);
+        const ship = document.getElementById('shipping_cost').value;
+        if (ship) formData.append('shipping_cost', ship);
+        const back = document.getElementById('allow_backorder').checked;
+        formData.append('allow_backorder', back ? 1 : 0);
 
         try {
 
@@ -565,6 +608,37 @@ async function simularCompra() {
 if (!usuario) {
     window.location.href = "login.html";
 } else {
-    cargarProductos();
+    cargarProductos("", 1, pageSize);
     renderCarrito();
+}
+
+// ==========================
+// 🏷️ CALIFICAR PRODUCTO
+// ==========================
+async function rateProduct(id) {
+    if (!usuario || !usuario.id_usuario) {
+        return alert('Debes iniciar sesión para calificar');
+    }
+
+    const rating = parseInt(prompt('Calificación (1-5):'));
+    if (!rating || rating < 1 || rating > 5) return alert('Calificación inválida');
+
+    const comentario = prompt('Comentario (opcional):');
+
+    try {
+        const res = await fetch(window.location.origin + `/productos/${id}/ratings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_usuario: usuario.id_usuario, rating, comentario })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Error al calificar');
+
+        showNotification('Gracias por tu calificación');
+        cargarProductos(lastSearch, currentPage, pageSize);
+    } catch (err) {
+        console.error(err);
+        alert('Error al enviar la calificación');
+    }
 }

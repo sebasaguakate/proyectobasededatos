@@ -69,7 +69,38 @@ async function initDatabase() {
                 modelo VARCHAR(100) NOT NULL,
                 precio DECIMAL(10,2) NOT NULL,
                 stock INT NOT NULL,
+                descripcion TEXT,
+                condicion VARCHAR(50),
+                color VARCHAR(50),
+                almacenamiento VARCHAR(50),
+                categoria VARCHAR(100),
+                shipping_cost DECIMAL(10,2) DEFAULT 0,
+                allow_backorder TINYINT(1) DEFAULT 0,
                 imagen VARCHAR(255),
+                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS imagenes_producto (
+                id_imagen INT PRIMARY KEY AUTO_INCREMENT,
+                id_producto INT NOT NULL,
+                ruta VARCHAR(255) NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE
+            )
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS ratings (
+                id_rating INT PRIMARY KEY AUTO_INCREMENT,
+                id_producto INT NOT NULL,
+                id_usuario INT NOT NULL,
+                rating TINYINT NOT NULL,
+                comentario TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_user_product (id_producto, id_usuario),
+                FOREIGN KEY (id_producto) REFERENCES productos(id_producto),
                 FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
             )
         `);
