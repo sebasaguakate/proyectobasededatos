@@ -56,9 +56,23 @@ async function initDatabase() {
                 nombre VARCHAR(100) NOT NULL,
                 apellido VARCHAR(100) NOT NULL,
                 correo VARCHAR(180) NOT NULL UNIQUE,
-                contraseña VARCHAR(255) NOT NULL
+                password VARCHAR(255) NOT NULL
             )
         `);
+
+        const [usuarioColumns] = await connection.query(
+            `SELECT COLUMN_NAME
+             FROM INFORMATION_SCHEMA.COLUMNS
+             WHERE TABLE_SCHEMA = ?
+               AND TABLE_NAME = 'usuarios'
+               AND COLUMN_NAME IN ('contraseña', 'password')`,
+            [dbConfig.database]
+        );
+
+        const columnNames = usuarioColumns.map(col => col.COLUMN_NAME);
+        if (columnNames.includes('contraseña') && !columnNames.includes('password')) {
+            await connection.query("ALTER TABLE usuarios CHANGE `contraseña` password VARCHAR(255) NOT NULL");
+        }
 
         await connection.query(`
             CREATE TABLE IF NOT EXISTS productos (

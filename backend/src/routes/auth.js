@@ -49,7 +49,7 @@ router.post("/register", async (req, res) => {
         }
 
         await pool.query(
-            `INSERT INTO usuarios (nombre, apellido, correo, contraseña) VALUES (?, ?, ?, ?)`,
+            `INSERT INTO usuarios (nombre, apellido, correo, password) VALUES (?, ?, ?, ?)`,
             [nombre, apellido, correo, passwordValue]
         );
 
@@ -58,7 +58,7 @@ router.post("/register", async (req, res) => {
             message: "Usuario registrado"
         });
     } catch (error) {
-        console.log(error);
+        console.error("Error en /auth/register:", error);
         res.status(500).json({
             success: false,
             message: "Error registrando usuario"
@@ -89,7 +89,7 @@ router.post("/login", async (req, res) => {
 
     try {
         const [rows] = await pool.query(
-            `SELECT * FROM usuarios WHERE correo = ? AND contraseña = ?`,
+            `SELECT * FROM usuarios WHERE correo = ? AND password = ?`,
             [correo, passwordValue]
         );
 
@@ -108,7 +108,7 @@ router.post("/login", async (req, res) => {
             });
         }
     } catch (error) {
-        console.log(error);
+        console.error("Error en /auth/login:", error);
         res.status(500).json({
             success: false,
             message: "Error del servidor"
