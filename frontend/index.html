@@ -31,6 +31,8 @@
         </a>
 
         <div class="d-flex align-items-center gap-3">
+            <a href="dashboard.html" class="btn btn-outline-secondary">Mi panel</a>
+
             <span
                 id="contador"
                 class="badge bg-success me-3"
@@ -90,7 +92,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="ad-card h-100">
-                        <img src="https://images.unsplash.com/photo-1510557880182-3eecf7d8b448?auto=format&fit=crop&w=800&q=80" alt="Publicidad celular 2" class="img-fluid rounded-4 mb-3">
+                        <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=80" alt="Publicidad celular 2" class="img-fluid rounded-4 mb-3">
                         <h5>iPhone Classic</h5>
                         <p class="text-muted">Diseño elegante y cámara profesional en tus manos.</p>
                         <button class="btn btn-sm btn-outline-light">Ver oferta</button>
@@ -186,6 +188,58 @@
                         >
                     </div>
 
+                        <div class="col-md-12 mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea id="descripcion" class="form-control" placeholder="Descripción del producto" required></textarea>
+                        </div>
+
+                        <div class="col-md-12 mb-3">
+                            <label for="imagenes" class="form-label">Imágenes adicionales</label>
+                            <input
+                                type="file"
+                                id="imagenes"
+                                name="imagenes"
+                                class="form-control"
+                                accept="image/*"
+                                multiple
+                            >
+                            <div class="form-text">Puedes subir varias imágenes del producto.</div>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="condicion" class="form-label">Condición</label>
+                            <select id="condicion" class="form-select">
+                                <option value="Nuevo">Nuevo</option>
+                                <option value="Usado">Usado</option>
+                                <option value="Reacondicionado">Reacondicionado</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="color" class="form-label">Color</label>
+                            <input type="text" id="color" class="form-control" placeholder="Color">
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="almacenamiento" class="form-label">Almacenamiento</label>
+                            <input type="text" id="almacenamiento" class="form-control" placeholder="Ej: 128GB">
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label for="categoria" class="form-label">Categoría</label>
+                            <input type="text" id="categoria" class="form-control" placeholder="Ej: Smartphones">
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="shipping_cost" class="form-label">Costo de envío</label>
+                            <input type="number" step="0.01" id="shipping_cost" class="form-control" placeholder="Ej: 5.00">
+                        </div>
+
+                        <div class="col-md-6 mb-3 d-flex align-items-center">
+                            <input type="checkbox" id="allow_backorder" class="form-check-input me-2">
+                            <label for="allow_backorder" class="form-check-label">Permitir pedidos cuando no hay stock</label>
+                        </div>
+
                     <!-- 🖼️ IMAGEN -->
                     <div class="col-md-12 mb-3">
                         <label for="imagen" class="form-label">Imagen del producto</label>
@@ -217,12 +271,15 @@
 
                 <div class="col-md-4">
 
-                    <input
-                        type="text"
-                        id="buscador"
-                        class="form-control"
-                        placeholder="Buscar celular..."
-                    >
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            id="buscador"
+                            class="form-control"
+                            placeholder="Buscar productos..."
+                        >
+                        <button class="btn btn-outline-secondary" type="button" id="buscarBtn">Buscar</button>
+                    </div>
 
                 </div>
 
@@ -329,6 +386,9 @@
             class="row"
         >
         </div>
+
+        <nav id="paginationNav" class="mt-3" aria-label="Paginación">
+        </nav>
 
     </div>
 

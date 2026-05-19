@@ -23,18 +23,97 @@ const upload = multer({ storage: storage });
 // =========================
 router.get("/", async (req, res) => {
 
+    const { search } = req.query;
+
     try {
 
-        const [rows] = await pool.query(`
+        let sql = `
             SELECT
                 productos.*,
-                usuarios.nombre
+                usuarios.nombre,
+                IFNULL(AVG(r.rating), 0) as avg_rating,
+                COUNT(r.id_rating) as rating_count
             FROM productos
             JOIN usuarios
             ON productos.id_usuario = usuarios.id_usuario
-        `);
+            LEFT JOIN ratings r ON r.id_producto = productos.id_producto
+        `;
 
-        res.json(rows);
+        const params = [];
+
+        if (search) {
+            sql += ` WHERE (
+                productos.nombre_producto LIKE ? OR
+                productos.marca LIKE ? OR
+                productos.modelo LIKE ? OR
+                usuarios.nombre LIKE ?
+            )`;
+
+            const like = `%${search}%`;
+
+            params.push(like, like, like, like);
+        }
+
+        // soporte de paginación
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 12;
+        const offset = (page - 1) * limit;
+
+        // contar total con misma condición (sin LIMIT)
+        let countSql = `SELECT COUNT(*) as total FROM productos JOIN usuarios ON productos.id_usuario = usuarios.id_usuario`;
+        const countParams = [];
+
+        if (search) {
+            countSql += ` WHERE (
+                productos.nombre_producto LIKE ? OR
+                productos.marca LIKE ? OR
+                productos.modelo LIKE ? OR
+                usuarios.nombre LIKE ?
+            )`;
+
+            const like = `%${search}%`;
+            countParams.push(like, like, like, like);
+        }
+
+        const [countRows] = await pool.query(countSql, countParams);
+        const total = countRows && countRows[0] ? countRows[0].total : 0;
+
+        // agrupar para que AVG/COUNT funcionen
+        sql += ` GROUP BY productos.id_producto`;
+
+        // añadir paginación a la consulta principal
+        const paramsForRows = params.slice();
+        sql += ` LIMIT ? OFFSET ?`;
+        paramsForRows.push(limit, offset);
+
+        const [rows] = await pool.query(sql, paramsForRows);
+
+        const productIds = rows.map(r => r.id_producto);
+        if (productIds.length > 0) {
+            const [imagesRows] = await pool.query(
+                `SELECT id_producto, ruta FROM imagenes_producto WHERE id_producto IN (?)`,
+                [productIds]
+            );
+
+            const imagenesMap = imagesRows.reduce((acc, image) => {
+                if (!acc[image.id_producto]) acc[image.id_producto] = [];
+                acc[image.id_producto].push(image.ruta);
+                return acc;
+            }, {});
+
+            rows.forEach(row => {
+                row.imagenes = imagenesMap[row.id_producto] || [];
+                if (!row.imagen && row.imagenes.length > 0) {
+                    row.imagen = row.imagenes[0];
+                }
+            });
+        } else {
+            rows.forEach(row => {
+                row.imagenes = [];
+            });
+        }
+
+        res.json({ rows, total });
 
     } catch (error) {
 
@@ -46,29 +125,170 @@ router.get("/", async (req, res) => {
     }
 });
 
+// =========================
+// MIS PRODUCTOS
+// =========================
+router.get("/mis-productos/:id_usuario", async (req, res) => {
+    const { id_usuario } = req.params;
+
+    try {
+        const [rows] = await pool.query(
+            `
+            SELECT
+                productos.*,
+                usuarios.nombre,
+                IFNULL(AVG(r.rating), 0) as avg_rating,
+                COUNT(r.id_rating) as rating_count
+            FROM productos
+            JOIN usuarios ON productos.id_usuario = usuarios.id_usuario
+            LEFT JOIN ratings r ON r.id_producto = productos.id_producto
+            WHERE productos.id_usuario = ?
+            GROUP BY productos.id_producto
+            ORDER BY productos.id_producto DESC
+            `,
+            [id_usuario]
+        );
+
+        const productIds = rows.map(r => r.id_producto);
+        if (productIds.length > 0) {
+            const [imagesRows] = await pool.query(
+                `SELECT id_producto, ruta FROM imagenes_producto WHERE id_producto IN (?)`,
+                [productIds]
+            );
+
+            const imagenesMap = imagesRows.reduce((acc, image) => {
+                if (!acc[image.id_producto]) acc[image.id_producto] = [];
+                acc[image.id_producto].push(image.ruta);
+                return acc;
+            }, {});
+
+            rows.forEach(row => {
+                row.imagenes = imagenesMap[row.id_producto] || [];
+                if (!row.imagen && row.imagenes.length > 0) {
+                    row.imagen = row.imagenes[0];
+                }
+            });
+        } else {
+            rows.forEach(row => {
+                row.imagenes = [];
+            });
+        }
+
+        res.json({ rows });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Error obteniendo tus productos' });
+    }
+});
+
+// =========================
+// MIS COMPRAS
+// =========================
+router.get("/mis-compras/:id_usuario", async (req, res) => {
+    const { id_usuario } = req.params;
+
+    try {
+        const [rows] = await pool.query(
+            `
+            SELECT
+                v.id_venta,
+                v.fecha,
+                d.id_producto,
+                p.nombre_producto,
+                p.marca,
+                p.modelo,
+                p.imagen,
+                d.cantidad,
+                d.precio_unitario,
+                prodUser.nombre AS vendedor_nombre,
+                prodUser.apellido AS vendedor_apellido
+            FROM ventas v
+            JOIN detalles d ON d.id_venta = v.id_venta
+            JOIN productos p ON d.id_producto = p.id_producto
+            JOIN usuarios prodUser ON p.id_usuario = prodUser.id_usuario
+            WHERE v.id_cliente = ?
+            ORDER BY v.fecha DESC, v.id_venta DESC
+            `,
+            [id_usuario]
+        );
+
+        res.json({ rows });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Error obteniendo tus compras' });
+    }
+});
+
+// =========================
+// MIS VENTAS
+// =========================
+router.get("/mis-ventas/:id_usuario", async (req, res) => {
+    const { id_usuario } = req.params;
+
+    try {
+        const [rows] = await pool.query(
+            `
+            SELECT
+                v.id_venta,
+                v.fecha,
+                d.id_producto,
+                p.nombre_producto,
+                p.marca,
+                p.modelo,
+                p.imagen,
+                d.cantidad,
+                d.precio_unitario,
+                buyer.nombre AS cliente_nombre,
+                buyer.apellido AS cliente_apellido
+            FROM ventas v
+            JOIN detalles d ON d.id_venta = v.id_venta
+            JOIN productos p ON d.id_producto = p.id_producto
+            JOIN usuarios buyer ON v.id_cliente = buyer.id_usuario
+            WHERE p.id_usuario = ?
+            ORDER BY v.fecha DESC, v.id_venta DESC
+            `,
+            [id_usuario]
+        );
+
+        res.json({ rows });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Error obteniendo tus ventas' });
+    }
+});
+
 
 // =========================
 // CREAR PRODUCTO
 // =========================
-router.post("/", upload.single('imagen'), async (req, res) => {
+router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagenes', maxCount: 8 }]), async (req, res) => {
 
     const {
-
         id_usuario,
-
         nombre_producto,
         marca,
         modelo,
         precio,
-        stock
-
+        stock,
+        descripcion,
+        condicion,
+        color,
+        almacenamiento,
+        categoria,
+        shipping_cost,
+        allow_backorder
     } = req.body;
 
-    const imagen = req.file ? '/uploads/' + req.file.filename : null;
+    const mainImageFile = req.files?.imagen?.[0] || null;
+    const extraFiles = req.files?.imagenes || [];
+    const imagen = mainImageFile
+        ? '/uploads/' + mainImageFile.filename
+        : extraFiles.length > 0
+            ? '/uploads/' + extraFiles[0].filename
+            : null;
 
     try {
-
-        await pool.query(
+        const [result] = await pool.query(
             `
             INSERT INTO productos
             (
@@ -78,9 +298,16 @@ router.post("/", upload.single('imagen'), async (req, res) => {
                 modelo,
                 precio,
                 stock,
+                descripcion,
+                condicion,
+                color,
+                almacenamiento,
+                categoria,
+                shipping_cost,
+                allow_backorder,
                 imagen
             )
-            VALUES (?, ?, ?, ?, ?, ?,?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 id_usuario,
@@ -89,9 +316,34 @@ router.post("/", upload.single('imagen'), async (req, res) => {
                 modelo,
                 precio,
                 stock,
+                descripcion || null,
+                condicion || null,
+                color || null,
+                almacenamiento || null,
+                categoria || null,
+                shipping_cost || 0,
+                allow_backorder ? 1 : 0,
                 imagen
             ]
         );
+
+        const id_producto = result.insertId;
+        const imageRows = [];
+
+        if (mainImageFile) {
+            imageRows.push([id_producto, '/uploads/' + mainImageFile.filename]);
+        }
+
+        extraFiles.forEach(file => {
+            imageRows.push([id_producto, '/uploads/' + file.filename]);
+        });
+
+        if (imageRows.length > 0) {
+            await pool.query(
+                `INSERT INTO imagenes_producto (id_producto, ruta) VALUES ?`,
+                [imageRows]
+            );
+        }
 
         res.json({
             message: "Producto agregado"
@@ -108,6 +360,49 @@ router.post("/", upload.single('imagen'), async (req, res) => {
     }
 });
 
+// =========================
+// DETALLE DE PRODUCTO
+// =========================
+router.get("/:id", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [rows] = await pool.query(
+            `
+            SELECT
+                productos.*,
+                u.nombre AS vendedor_nombre,
+                u.apellido AS vendedor_apellido,
+                u.correo AS vendedor_correo
+            FROM productos
+            JOIN usuarios u ON productos.id_usuario = u.id_usuario
+            WHERE productos.id_producto = ?
+            `,
+            [id]
+        );
+
+        if (!rows.length) {
+            return res.status(404).json({ success: false, message: "Producto no encontrado" });
+        }
+
+        const product = rows[0];
+        const [imagesRows] = await pool.query(
+            `SELECT ruta FROM imagenes_producto WHERE id_producto = ?`,
+            [id]
+        );
+
+        product.imagenes = imagesRows.map(image => image.ruta);
+        if (!product.imagen && product.imagenes.length > 0) {
+            product.imagen = product.imagenes[0];
+        }
+
+        res.json({ product });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: "Error obteniendo producto" });
+    }
+});
+
 
 // =========================
 // ACTUALIZAR PRODUCTO
@@ -121,7 +416,14 @@ router.put("/:id", async (req, res) => {
         marca,
         modelo,
         precio,
-        stock
+        stock,
+        descripcion,
+        condicion,
+        color,
+        almacenamiento,
+        categoria,
+        shipping_cost,
+        allow_backorder
     } = req.body;
 
     try {
@@ -134,7 +436,14 @@ router.put("/:id", async (req, res) => {
                 marca=?,
                 modelo=?,
                 precio=?,
-                stock=?
+                stock=?,
+                descripcion=?,
+                condicion=?,
+                color=?,
+                almacenamiento=?,
+                categoria=?,
+                shipping_cost=?,
+                allow_backorder=?
             WHERE id_producto=?
             `,
             [
@@ -143,6 +452,13 @@ router.put("/:id", async (req, res) => {
                 modelo,
                 precio,
                 stock,
+                descripcion || null,
+                condicion || null,
+                color || null,
+                almacenamiento || null,
+                categoria || null,
+                shipping_cost || 0,
+                allow_backorder ? 1 : 0,
                 id
             ]
         );
@@ -187,6 +503,72 @@ router.delete("/:id", async (req, res) => {
         res.status(500).json({
             success: false
         });
+    }
+});
+
+
+// =========================
+// CALIFICACIONES
+// =========================
+
+// Obtener calificaciones de un producto
+router.get("/:id/ratings", async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const [rows] = await pool.query(
+            `SELECT r.*, u.nombre FROM ratings r JOIN usuarios u ON r.id_usuario = u.id_usuario WHERE r.id_producto = ? ORDER BY r.created_at DESC`,
+            [id]
+        );
+
+        const [agg] = await pool.query(
+            `SELECT IFNULL(AVG(rating),0) as avg_rating, COUNT(*) as count FROM ratings WHERE id_producto = ?`,
+            [id]
+        );
+
+        res.json({ ratings: rows, avg: agg[0].avg_rating, count: agg[0].count });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Error obteniendo calificaciones' });
+    }
+});
+
+// Agregar o actualizar calificación
+router.post("/:id/ratings", async (req, res) => {
+    const { id } = req.params;
+    const { id_usuario, rating, comentario } = req.body;
+
+    if (!id_usuario || !rating) {
+        return res.status(400).json({ success: false, message: 'Faltan datos' });
+    }
+
+    if (rating < 1 || rating > 5) {
+        return res.status(400).json({ success: false, message: 'Rating debe estar entre 1 y 5' });
+    }
+
+    try {
+        // intentar update, si no existe hacer insert
+        const [existing] = await pool.query(
+            `SELECT id_rating FROM ratings WHERE id_producto = ? AND id_usuario = ?`,
+            [id, id_usuario]
+        );
+
+        if (existing.length > 0) {
+            await pool.query(
+                `UPDATE ratings SET rating = ?, comentario = ?, created_at = NOW() WHERE id_rating = ?`,
+                [rating, comentario || null, existing[0].id_rating]
+            );
+        } else {
+            await pool.query(
+                `INSERT INTO ratings (id_producto, id_usuario, rating, comentario) VALUES (?, ?, ?, ?)`,
+                [id, id_usuario, rating, comentario || null]
+            );
+        }
+
+        res.json({ success: true, message: 'Calificación registrada' });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Error guardando calificación' });
     }
 });
 
