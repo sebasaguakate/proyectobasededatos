@@ -442,6 +442,21 @@
     </audio>
 
     <!-- ========================= -->
+    <!-- 🎤 AUDIO OCULTO -->
+    <!-- ========================= -->
+    <audio id="audioProfe" style="display:none;">
+        <source src="uploads/audio_profe.webm" type="audio/webm">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <!-- ========================= -->
+    <!-- 🖼️ MEME OCULTO -->
+    <!-- ========================= -->
+    <div id="memeContainer" class="meme-container d-none">
+        <img id="memeImage" src="uploads/meme_profe.jpeg" alt="Noo messi" />
+    </div>
+
+    <!-- ========================= -->
     <!-- 🎤 BOTÓN ESCONDIDO ABAJO -->
     <!-- ========================= -->
     <button id="btnProfe" class="btn-profe-oculto" title="Haz clic para escuchar">
@@ -458,10 +473,16 @@
     <script>
         const btnProfe = document.getElementById('btnProfe');
         const audioProfe = document.getElementById('audioProfe');
+        const memeContainer = document.getElementById('memeContainer');
 
         btnProfe.addEventListener('click', function() {
             audioProfe.volume = 1.0; // Volumen al 100%
             audioProfe.play();
+            memeContainer.classList.remove('d-none');
+        });
+
+        audioProfe.addEventListener('ended', function() {
+            setTimeout(() => memeContainer.classList.add('d-none'), 2000);
         });
     </script>
 
