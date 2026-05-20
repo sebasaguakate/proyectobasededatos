@@ -113,9 +113,10 @@
         <!-- ➕ PUBLICAR PRODUCTO -->
         <!-- ========================= -->
         <div class="mb-4 text-end">
-            <button id="publishToggleBtn" class="btn btn-primary">
-                Publicar celular
-            </button>
+            <div class="btn-group" role="group">
+                <button id="publishPhoneBtn" class="btn btn-primary">Publicar celular</button>
+                <button id="publishAccessoryBtn" class="btn btn-outline-primary">Publicar accesorio</button>
+            </div>
         </div>
 
         <div id="publishCard" class="card shadow p-4 mb-4 d-none">
@@ -130,8 +131,15 @@
             </div>
 
             <form id="formProducto" enctype="multipart/form-data">
+                <input type="hidden" id="tipoProducto" value="celular">
 
                 <div class="row">
+                    <div class="col-md-3 mb-3" id="parentDeviceContainer" style="display:none;">
+                        <label for="parentDevice" class="form-label">¿Accesorio para qué celular? (opcional)</label>
+                        <select id="parentDevice" class="form-select">
+                            <option value="">Seleccionar un celular...</option>
+                        </select>
+                    </div>
 
                     <div class="col-md-4 mb-3">
                         <label for="nombre" class="form-label">Nombre del producto</label>

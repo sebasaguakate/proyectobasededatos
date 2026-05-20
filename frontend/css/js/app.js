@@ -30,7 +30,7 @@ let totalItems = 0;
 // ==========================
 // 📦 CARGAR PRODUCTOS
 // ==========================
-async function cargarProductos(search = "", page = 1, limit = pageSize) {
+async function cargarProductos(search = "", page = 1, limit = pageSize, tipo = "" ) {
     lastSearch = search;
     currentPage = page;
     pageSize = limit;
@@ -360,6 +360,13 @@ if (form) {
         formData.append('modelo', document.getElementById("modelo").value);
         formData.append('precio', Number(document.getElementById("precio").value));
         formData.append('stock', Number(document.getElementById("stock").value));
+        formData.append('tipo_producto', document.getElementById("tipoProducto").value);
+        
+        const parentDevice = document.getElementById("parentDevice");
+        if (parentDevice && parentDevice.value) {
+            formData.append('parent_device_name', parentDevice.value);
+        }
+        
         const imagenInput = document.getElementById("imagen");
         if (imagenInput.files[0]) {
             formData.append('imagen', imagenInput.files[0]);
@@ -402,11 +409,13 @@ if (form) {
             showNotification("Producto publicado exitosamente");
 
             form.reset();
+            document.getElementById("tipoProducto").value = "celular";
             cargarProductos();
 
-            if (publishCard && publishToggleBtn) {
+            if (publishCard && publishPhoneBtn) {
                 publishCard.classList.add("d-none");
-                publishToggleBtn.classList.remove("d-none");
+                publishPhoneBtn.classList.remove("d-none");
+                publishAccessoryBtn.classList.remove("d-none");
             }
         } catch (error) {
             console.error(
@@ -418,22 +427,71 @@ if (form) {
     });
 }
 
-const publishToggleBtn = document.getElementById("publishToggleBtn");
+const publishPhoneBtn = document.getElementById("publishPhoneBtn");
+const publishAccessoryBtn = document.getElementById("publishAccessoryBtn");
 const publishCard = document.getElementById("publishCard");
 const cancelPublishBtn = document.getElementById("cancelPublishBtn");
+const tipoProductoInput = document.getElementById("tipoProducto");
+const parentDeviceContainer = document.getElementById("parentDeviceContainer");
 
-if (publishToggleBtn && publishCard) {
-    publishToggleBtn.addEventListener("click", () => {
+function showPublishForm(tipo) {
+    if (publishCard) {
         publishCard.classList.remove("d-none");
-        publishToggleBtn.classList.add("d-none");
-        document.getElementById("nombre").focus();
+        publishPhoneBtn.classList.add("d-none");
+        publishAccessoryBtn.classList.add("d-none");
+    }
+    if (tipoProductoInput) {
+        tipoProductoInput.value = tipo;
+    }
+    if (parentDeviceContainer) {
+        parentDeviceContainer.style.display = tipo === "accesorio" ? "block" : "none";
+        if (tipo === "accesorio") {
+            cargarCelularesDisponibles();
+        }
+    }
+    document.getElementById("nombre").focus();
+}
+
+async function cargarCelularesDisponibles() {
+    try {
+        const res = await fetch(window.location.origin + "/productos?tipo=celular&limit=999");
+        const data = await res.json();
+        const celulares = Array.isArray(data) ? data : (data.rows || []);
+        
+        const select = document.getElementById("parentDevice");
+        if (select) {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Seleccionar un celular...</option>';
+            celulares.forEach(cel => {
+                const option = document.createElement("option");
+                option.value = cel.nombre_producto;
+                option.textContent = `${cel.nombre_producto} (${cel.marca} ${cel.modelo})`;
+                select.appendChild(option);
+            });
+            select.value = currentValue;
+        }
+    } catch (error) {
+        console.error("Error cargando celulares:", error);
+    }
+}
+
+if (publishPhoneBtn && publishCard) {
+    publishPhoneBtn.addEventListener("click", () => {
+        showPublishForm("celular");
     });
 }
 
-if (cancelPublishBtn && publishCard && publishToggleBtn) {
+if (publishAccessoryBtn && publishCard) {
+    publishAccessoryBtn.addEventListener("click", () => {
+        showPublishForm("accesorio");
+    });
+}
+
+if (cancelPublishBtn && publishCard && publishPhoneBtn) {
     cancelPublishBtn.addEventListener("click", () => {
         publishCard.classList.add("d-none");
-        publishToggleBtn.classList.remove("d-none");
+        publishPhoneBtn.classList.remove("d-none");
+        publishAccessoryBtn.classList.remove("d-none");
     });
 }
 

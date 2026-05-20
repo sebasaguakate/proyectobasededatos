@@ -23,7 +23,7 @@ const upload = multer({ storage: storage });
 // =========================
 router.get("/", async (req, res) => {
 
-    const { search } = req.query;
+    const { search, tipo } = req.query;
 
     try {
 
@@ -40,18 +40,27 @@ router.get("/", async (req, res) => {
         `;
 
         const params = [];
+        const conditions = [];
 
         if (search) {
-            sql += ` WHERE (
+            conditions.push(` (
                 productos.nombre_producto LIKE ? OR
                 productos.marca LIKE ? OR
                 productos.modelo LIKE ? OR
                 usuarios.nombre LIKE ?
-            )`;
+            )`);
 
             const like = `%${search}%`;
-
             params.push(like, like, like, like);
+        }
+
+        if (tipo) {
+            conditions.push(" productos.tipo_producto = ?");
+            params.push(tipo);
+        }
+
+        if (conditions.length > 0) {
+            sql += " WHERE " + conditions.join(" AND ");
         }
 
         // soporte de paginación
@@ -61,18 +70,10 @@ router.get("/", async (req, res) => {
 
         // contar total con misma condición (sin LIMIT)
         let countSql = `SELECT COUNT(*) as total FROM productos JOIN usuarios ON productos.id_usuario = usuarios.id_usuario`;
-        const countParams = [];
+        const countParams = params.slice();
 
-        if (search) {
-            countSql += ` WHERE (
-                productos.nombre_producto LIKE ? OR
-                productos.marca LIKE ? OR
-                productos.modelo LIKE ? OR
-                usuarios.nombre LIKE ?
-            )`;
-
-            const like = `%${search}%`;
-            countParams.push(like, like, like, like);
+        if (conditions.length > 0) {
+            countSql += " WHERE " + conditions.join(" AND ");
         }
 
         const [countRows] = await pool.query(countSql, countParams);
@@ -276,7 +277,9 @@ router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagen
         almacenamiento,
         categoria,
         shipping_cost,
-        allow_backorder
+        allow_backorder,
+        tipo_producto,
+        parent_device_name
     } = req.body;
 
     const mainImageFile = req.files?.imagen?.[0] || null;
@@ -305,9 +308,10 @@ router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagen
                 categoria,
                 shipping_cost,
                 allow_backorder,
-                imagen
+                imagen,
+                tipo_producto
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
                 id_usuario,
@@ -323,7 +327,8 @@ router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagen
                 categoria || null,
                 shipping_cost || 0,
                 allow_backorder ? 1 : 0,
-                imagen
+                imagen,
+                tipo_producto || 'celular'
             ]
         );
 

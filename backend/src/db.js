@@ -91,9 +91,18 @@ async function initDatabase() {
                 shipping_cost DECIMAL(10,2) DEFAULT 0,
                 allow_backorder TINYINT(1) DEFAULT 0,
                 imagen VARCHAR(255),
+                tipo_producto ENUM('celular', 'accesorio') DEFAULT 'celular',
                 FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
             )
         `);
+
+        const [productosColumns] = await connection.query(
+            `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'productos' AND COLUMN_NAME = 'tipo_producto'`,
+            [dbConfig.database]
+        );
+        if (productosColumns.length === 0) {
+            await connection.query("ALTER TABLE productos ADD COLUMN tipo_producto ENUM('celular', 'accesorio') DEFAULT 'celular'");
+        }
 
         await connection.query(`
             CREATE TABLE IF NOT EXISTS imagenes_producto (
