@@ -63,7 +63,7 @@ a {
 }
 
 .auth-bg {
-    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    background: linear-gradient(180deg, #0f172a 0%, #111827 55%, #1e293b 100%);
 }
 
 .auth-card,
@@ -72,12 +72,11 @@ a {
 #publishCard,
 #carrito,
 .card.shadow,
-.auth-card,
 .product-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
-    backdrop-filter: blur(14px);
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(18px);
 }
 
 .auth-card {
@@ -92,17 +91,20 @@ a {
     align-items: center;
     justify-content: center;
     border-radius: 18px;
-    background: rgba(148, 163, 184, 0.18);
-    color: #334155;
+    background: rgba(14, 165, 233, 0.14);
+    color: #7dd3fc;
     font-size: 28px;
 }
 
 .auth-card h2 {
-    color: #0f172a;
+    color: #f8fafc;
 }
 
-.auth-card p {
-    color: var(--muted);
+.auth-card p,
+.auth-card .form-label,
+.auth-card .text-muted,
+.auth-card label {
+    color: rgba(226, 232, 240, 0.82);
 }
 
 .auth-card input,
@@ -113,18 +115,24 @@ a {
 }
 
 .auth-card input.form-control,
-.form-control,
-.form-select {
-    background: #f8fafc;
-    border: 1px solid rgba(148, 163, 184, 0.35);
-    color: var(--text);
+.auth-card .form-control,
+.auth-card .form-select {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    color: #e2e8f0;
+}
+
+.auth-card input.form-control::placeholder,
+.auth-card .form-control::placeholder,
+.auth-card .form-select::placeholder {
+    color: rgba(226, 232, 240, 0.5);
 }
 
 .auth-card input.form-control:focus,
 .form-control:focus,
 .form-select:focus {
-    border-color: rgba(148, 163, 184, 0.8);
-    box-shadow: 0 0 0 0.2rem rgba(148, 163, 184, 0.2);
+    border-color: rgba(56, 189, 248, 0.8);
+    box-shadow: 0 0 0 0.2rem rgba(14, 165, 233, 0.18);
 }
 
 .auth-card .btn,
@@ -140,42 +148,46 @@ a {
 .auth-card .btn,
 #publishToggleBtn,
 .btn-primary {
-    background: #cbd5e1;
-    color: #0f172a;
-    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: #0ea5e9;
+    color: #ffffff;
+    border: 1px solid rgba(14, 165, 233, 0.4);
 }
 
 .auth-card .btn:hover,
 #publishToggleBtn:hover,
 .btn-primary:hover {
-    background: #e2e8f0;
-    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+    background: #38bdf8;
+    box-shadow: 0 18px 36px rgba(14, 165, 233, 0.16);
 }
 
 .btn-success {
-    background: #94a3b8;
-    color: #0f172a;
-    border: 1px solid rgba(148, 163, 184, 0.45);
+    background: #22c55e;
+    color: #ffffff;
+    border: 1px solid rgba(34, 197, 94, 0.45);
 }
 
 .btn-success:hover {
-    background: #cbd5e1;
+    background: #16a34a;
 }
 
 .btn-danger {
-    background: #64748b;
+    background: #ef4444;
     color: #ffffff;
-    border: 1px solid rgba(100, 116, 139, 0.45);
+    border: 1px solid rgba(239, 68, 68, 0.45);
 }
 
 .btn-danger:hover {
-    background: #475569;
+    background: #dc2626;
 }
 
 .btn-outline-secondary {
-    color: #334155;
-    border-color: rgba(148, 163, 184, 0.65);
-    background: rgba(248, 250, 252, 0.9);
+    color: #e2e8f0;
+    border-color: rgba(226, 232, 240, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.btn-outline-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .btn-outline-secondary:hover {
