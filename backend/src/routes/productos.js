@@ -418,6 +418,21 @@ router.get("/:id", async (req, res) => {
             product.imagen = product.imagenes[0];
         }
 
+        // Registrar una visita a este producto
+        try {
+            let source = 'organic';
+            if (req.query.source === 'publicidad' || (req.get('referer') && req.get('referer').includes('/publicidad'))) {
+                source = 'publicidad';
+            }
+            const ip = req.ip || req.headers['x-forwarded-for'] || null;
+            await pool.query(
+                `INSERT INTO visitas_producto (id_producto, fuente, ip) VALUES (?, ?, ?)`,
+                [id, source, ip]
+            );
+        } catch (err) {
+            console.error('Error registrando visita:', err.message || err);
+        }
+
         res.json({ product });
     } catch (error) {
         console.log(error);
@@ -591,6 +606,48 @@ router.post("/:id/ratings", async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: 'Error guardando calificación' });
+    }
+});
+
+
+// =========================
+// ESTADÍSTICAS DEL VENDEDOR
+// =========================
+router.get('/estadisticas/:id_usuario', async (req, res) => {
+    const { id_usuario } = req.params;
+
+    try {
+        const [rows] = await pool.query(
+            `
+            SELECT
+                p.id_producto,
+                p.nombre_producto,
+                p.marca,
+                p.modelo,
+                COALESCE(v.total_views, 0) AS total_views,
+                COALESCE(v.ad_views, 0) AS views_publicidad,
+                COALESCE(s.total_sold, 0) AS total_sold
+            FROM productos p
+            LEFT JOIN (
+                SELECT id_producto, COUNT(*) AS total_views, SUM(CASE WHEN fuente = 'publicidad' THEN 1 ELSE 0 END) AS ad_views
+                FROM visitas_producto
+                GROUP BY id_producto
+            ) v ON p.id_producto = v.id_producto
+            LEFT JOIN (
+                SELECT id_producto, SUM(cantidad) AS total_sold
+                FROM detalles
+                GROUP BY id_producto
+            ) s ON p.id_producto = s.id_producto
+            WHERE p.id_usuario = ?
+            ORDER BY p.id_producto DESC
+            `,
+            [id_usuario]
+        );
+
+        res.json({ rows });
+    } catch (error) {
+        console.error('Error obteniendo estadísticas:', error);
+        res.status(500).json({ success: false, message: 'Error obteniendo estadísticas' });
     }
 });
 

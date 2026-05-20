@@ -127,6 +127,17 @@ async function initDatabase() {
         `);
 
         await connection.query(`
+            CREATE TABLE IF NOT EXISTS visitas_producto (
+                id_visita INT PRIMARY KEY AUTO_INCREMENT,
+                id_producto INT NOT NULL,
+                fuente ENUM('organic','publicidad') DEFAULT 'organic',
+                ip VARCHAR(45),
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE
+            )
+        `);
+
+        await connection.query(`
             CREATE TABLE IF NOT EXISTS ratings (
                 id_rating INT PRIMARY KEY AUTO_INCREMENT,
                 id_producto INT NOT NULL,
