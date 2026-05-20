@@ -24,6 +24,38 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+async function ensureProductoColumns() {
+    try {
+        const [columnRows] = await pool.query(
+            `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'productos'`
+        );
+
+        const existingColumns = columnRows.map(col => col.COLUMN_NAME);
+        const requiredColumns = [
+            { name: 'descripcion', ddl: 'TEXT' },
+            { name: 'condicion', ddl: 'VARCHAR(50)' },
+            { name: 'color', ddl: 'VARCHAR(50)' },
+            { name: 'almacenamiento', ddl: 'VARCHAR(50)' },
+            { name: 'categoria', ddl: 'VARCHAR(100)' },
+            { name: 'shipping_cost', ddl: 'DECIMAL(10,2) DEFAULT 0' },
+            { name: 'allow_backorder', ddl: 'TINYINT(1) DEFAULT 0' },
+            { name: 'imagen', ddl: 'VARCHAR(255)' },
+            { name: 'tipo_producto', ddl: "ENUM('celular','accesorio') DEFAULT 'celular'" },
+            { name: 'tipo_accesorio', ddl: 'VARCHAR(100)' },
+            { name: 'parent_device_name', ddl: 'VARCHAR(150)' }
+        ];
+
+        for (const column of requiredColumns) {
+            if (!existingColumns.includes(column.name)) {
+                await pool.query(`ALTER TABLE productos ADD COLUMN \`${column.name}\` ${column.ddl}`);
+            }
+        }
+    } catch (error) {
+        console.error('Error verificando/escribiendo columnas en productos:', error.message || error);
+        throw error;
+    }
+}
+
 
 // =========================
 // OBTENER PRODUCTOS
@@ -270,6 +302,7 @@ router.get("/mis-ventas/:id_usuario", async (req, res) => {
 // CREAR PRODUCTO
 // =========================
 router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagenes', maxCount: 8 }]), async (req, res) => {
+    await ensureProductoColumns();
 
     const {
         id_usuario,
@@ -452,6 +485,7 @@ router.get("/:id", async (req, res) => {
 // ACTUALIZAR PRODUCTO
 // =========================
 router.put("/:id", async (req, res) => {
+    await ensureProductoColumns();
 
     const { id } = req.params;
 
