@@ -42,6 +42,7 @@ async function cargarProductos(search = "", page = 1, limit = pageSize, tipo = "
         if (search) params.push(`search=${encodeURIComponent(search)}`);
         if (page) params.push(`page=${page}`);
         if (limit) params.push(`limit=${limit}`);
+        if (tipo) params.push(`tipo=${encodeURIComponent(tipo)}`);
         if (params.length) url += `?${params.join('&')}`;
 
         const res = await fetch(url);
@@ -111,6 +112,45 @@ function mostrarProductos(productos) {
 
 function verDetalle(id) {
     window.location.href = `producto.html?id=${id}`;
+}
+
+async function cargarPublicidadDestacada() {
+    const container = document.getElementById('adsContainer');
+    if (!container) return;
+
+    try {
+        const res = await fetch(window.location.origin + '/publicidades');
+        const data = await res.json();
+        const rows = data.rows || [];
+
+        if (!rows.length) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-secondary text-center">Aún no hay productos destacados.</div>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = rows.map(p => `
+            <div class="col-md-4">
+                <div class="ad-card h-100">
+                    <img src="${p.imagen || 'https://via.placeholder.com/800x500'}" alt="${p.nombre_producto}" class="img-fluid rounded-4 mb-3">
+                    <h5>${p.nombre_producto}</h5>
+                    <p class="text-muted">${p.marca} ${p.modelo}</p>
+                    <p class="text-success mb-3">$${p.precio}</p>
+                    <button class="btn btn-sm btn-outline-light" onclick="window.location.href='producto.html?id=${p.id_producto}'">Ver producto</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Error cargando publicidad destacada:', error);
+        container.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-danger text-center">No se pudo cargar la publicidad destacada.</div>
+            </div>
+        `;
+    }
 }
 
 // 🛒 AGREGAR AL CARRITO
@@ -666,6 +706,7 @@ async function simularCompra() {
 if (!usuario) {
     window.location.href = "login.html";
 } else {
+    cargarPublicidadDestacada();
     cargarProductos("", 1, pageSize);
     renderCarrito();
 }

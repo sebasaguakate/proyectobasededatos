@@ -25,6 +25,9 @@ app.use("/auth", authRoutes);
 const productosRoutes = require("./routes/productos");
 app.use("/productos", productosRoutes);
 
+const publicidadesRoutes = require("./routes/publicidades");
+app.use("/publicidades", publicidadesRoutes);
+
 // Endpoint de compra
 app.post("/comprar", async (req, res) => {
     const { id_cliente, id_empleado, carrito } = req.body;

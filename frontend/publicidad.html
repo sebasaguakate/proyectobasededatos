@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publicidad de Productos</title>
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body class="app-bg">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3 px-4 nav-glass">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+            <span class="brand-icon">📱</span>
+            <span>Tienda de Celulares</span>
+        </a>
+        <div class="d-flex align-items-center gap-3">
+            <a href="dashboard.html" class="btn btn-outline-secondary">Mi panel</a>
+            <span id="usuarioInfo" class="text-white"></span>
+            <button type="button" id="logoutBtn" class="btn btn-danger">Cerrar sesión</button>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row gy-4">
+            <div class="col-lg-6">
+                <div class="card shadow-sm p-4 bg-glass">
+                    <h3 class="mb-3">Compra publicidad</h3>
+                    <p class="text-muted">Selecciona un producto para destacar en la página principal.</p>
+
+                    <form id="publicidadForm">
+                        <div class="mb-3">
+                            <label for="productoSelect" class="form-label">Producto</label>
+                            <select id="productoSelect" class="form-select" required>
+                                <option value="">Selecciona un producto</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dias" class="form-label">Duración (días)</label>
+                            <input type="number" id="dias" class="form-control" min="1" value="7" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Costo estimado</label>
+                            <div id="precioEstimado" class="fs-5 fw-semibold">$210.00</div>
+                            <small class="text-muted">Costo base: $30 por día.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Pagar publicidad</button>
+                        <div id="publicidadMessage" class="alert alert-success mt-3 d-none"></div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card shadow-sm p-4 bg-glass">
+                    <h3 class="mb-3">Mis publicidades activas</h3>
+                    <div id="misPublicidades"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="css/js/publicidad.js"></script>
+</body>
+
+</html>

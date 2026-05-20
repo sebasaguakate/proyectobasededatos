@@ -147,7 +147,22 @@ async function initDatabase() {
                 FOREIGN KEY (id_venta) REFERENCES ventas(id_venta),
                 FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
             )
-        `)
+        `);
+
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS publicidades (
+                id_publicidad INT PRIMARY KEY AUTO_INCREMENT,
+                id_producto INT NOT NULL UNIQUE,
+                id_usuario INT NOT NULL,
+                precio_pago DECIMAL(10,2) NOT NULL,
+                fecha_inicio DATE NOT NULL,
+                fecha_fin DATE NOT NULL,
+                estado ENUM('activa', 'expirada', 'cancelada') DEFAULT 'activa',
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE,
+                FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+            )
+        `);
 
         connection.release();
         console.log("✅ Base de datos de Railway conectada e inicializada");
