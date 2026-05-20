@@ -259,6 +259,73 @@ small {
     color: var(--muted) !important;
 }
 
+/* =============== UI OVERRIDES: buttons, white borders, and central waves =============== */
+
+/* cards and panels: semi-transparent with white borders for better contrast */
+.card, .card-custom, .card.shadow, .auth-card, .product-card, #publishCard, #carrito {
+    background: rgba(255,255,255,0.04) !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    color: #e6eef6;
+}
+
+/* primary visual buttons: translucent with subtle white border and lift on hover */
+.btn {
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    background: rgba(255,255,255,0.04) !important;
+    color: #e6eef6 !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45) !important;
+}
+.btn:hover {
+    background: rgba(255,255,255,0.14) !important;
+    transform: translateY(-3px);
+}
+.btn:active { transform: translateY(-1px); }
+
+/* specific color tweaks to preserve semantic meaning while keeping contrast */
+.btn-primary { background: linear-gradient(90deg, rgba(255,255,255,0.14), rgba(255,255,255,0.08)) !important; color: #071428 !important; }
+.btn-success { background: linear-gradient(90deg, rgba(220,255,220,0.12), rgba(180,255,200,0.06)) !important; color: #071428 !important; }
+.btn-danger { background: linear-gradient(90deg, rgba(255,220,220,0.08), rgba(255,200,200,0.03)) !important; color: #071428 !important; }
+
+/* top nav and glass panels: slightly stronger white border */
+.nav-glass, nav {
+    border-bottom: 1px solid rgba(255,255,255,0.14) !important;
+    background: rgba(255,255,255,0.03) !important;
+}
+
+/* animated white waves passing through the middle of the viewport */
+.app-bg::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 30vh;
+    pointer-events: none;
+    z-index: 0;
+    background-image: repeating-linear-gradient(-20deg, rgba(255,255,255,0.06) 0 22px, rgba(255,255,255,0.02) 22px 44px);
+    filter: blur(6px) contrast(120%);
+    opacity: 0.95;
+    mix-blend-mode: screen;
+    animation: waveMove 7s linear infinite;
+}
+
+@keyframes waveMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 500px 0; }
+}
+
+/* Ensure content appears above waves */
+.container, header, main, footer, .card, .auth-card, .product-card, nav {
+    position: relative;
+    z-index: 2;
+}
+
+/* small accessibility tweak: stronger card text color */
+.card p, .card h4, .card h5 { color: #dbe9f7 !important; }
+
+/* EOF UI overrides */
+
 .form-control,
 .form-select {
     background: #f8fafc;
