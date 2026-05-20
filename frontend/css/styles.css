@@ -21,8 +21,10 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
-    color: var(--text);
+    color: #e6eef6;
+    background: linear-gradient(90deg, #2f3236 0%, #242627 50%, #2f3236 100%);
+    background-size: 200% 200%;
+    animation: neonShift 8s ease-in-out infinite;
 }
 
 a {
@@ -30,7 +32,34 @@ a {
 }
 
 .app-bg {
-    background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+    background: linear-gradient(90deg, #2f3236 0%, #242627 50%, #2f3236 100%);
+    background-size: 200% 200%;
+    animation: neonShift 8s ease-in-out infinite;
+}
+
+/* animated neon gray background */
+@keyframes neonShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* subtle glowing overlays */
+.app-bg::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 10% 10%, rgba(174, 229, 255, 0.04), transparent 8%),
+                radial-gradient(circle at 90% 90%, rgba(174, 229, 255, 0.03), transparent 12%);
+    mix-blend-mode: screen;
+    z-index: 0;
+    animation: glowPulse 6s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
 }
 
 .auth-bg {
