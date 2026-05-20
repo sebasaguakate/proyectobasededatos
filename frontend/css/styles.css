@@ -503,3 +503,16 @@ small {
 .fade-in-delay-1 { animation-delay: 0.05s; }
 .fade-in-delay-2 { animation-delay: 0.12s; }
 .fade-in-delay-3 { animation-delay: 0.18s; }
+
+/* Model chips */
+.model-chip {
+    background: rgba(14,165,233,0.06);
+    border: 1px solid rgba(14,165,233,0.12);
+    color: #0f172a;
+    padding: 0.45rem 0.7rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
+}
+.model-chip:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(14,165,233,0.08); }
+.model-chip.active { background: linear-gradient(90deg,#0ea5e9,#06b6d4); color: #fff; border-color: transparent; }

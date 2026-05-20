@@ -762,6 +762,7 @@ if (!usuario) {
     window.location.href = "login.html";
 } else {
     cargarPublicidadDestacada();
+    cargarModelosCelulares();
     cargarProductos("", 1, pageSize);
     renderCarrito();
 }
@@ -794,5 +795,57 @@ async function rateProduct(id) {
     } catch (err) {
         console.error(err);
         alert('Error al enviar la calificación');
+    }
+}
+
+// =========================
+// CARGAR MODELOS DE CELULARES
+// =========================
+async function cargarModelosCelulares() {
+    const container = document.getElementById('modelsContainer');
+    if (!container) return;
+
+    try {
+        const res = await fetch(window.location.origin + '/productos?tipo=celular&limit=999');
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : (data.rows || []);
+
+        // obtener combinaciones únicas Marca Modelo
+        const seen = new Map();
+        rows.forEach(p => {
+            const key = `${p.marca || ''} ${p.modelo || ''}`.trim();
+            if (!key) return;
+            if (!seen.has(key)) seen.set(key, { marca: p.marca, modelo: p.modelo });
+        });
+
+        container.innerHTML = '';
+        if (seen.size === 0) {
+            container.innerHTML = '<div class="text-muted">No hay modelos disponibles.</div>';
+            return;
+        }
+
+        seen.forEach((val, key) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'model-chip';
+            btn.textContent = key;
+            btn.dataset.modelo = val.modelo || key;
+            btn.addEventListener('click', () => {
+                // toggle active
+                document.querySelectorAll('.model-chip').forEach(el => el.classList.remove('active'));
+                btn.classList.add('active');
+                // buscar por modelo (nombre semejante)
+                const query = val.modelo || key;
+                lastSearch = query;
+                cargarProductos(query, 1, pageSize);
+                const productosSection = document.getElementById('productos');
+                if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
+            });
+            container.appendChild(btn);
+        });
+
+    } catch (error) {
+        console.error('Error cargando modelos:', error);
+        container.innerHTML = '<div class="text-muted">Error cargando modelos</div>';
     }
 }
