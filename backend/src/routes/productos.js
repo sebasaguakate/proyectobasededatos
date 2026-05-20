@@ -2,7 +2,14 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 const multer = require('multer');
+const fs = require('fs');
 const path = require('path');
+
+// Crear carpeta de uploads si no existe (necesario en algunos entornos como Render)
+const uploadsDir = path.join(__dirname, '../../../frontend/uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Configurar multer para subir imágenes
 const storage = multer.diskStorage({
