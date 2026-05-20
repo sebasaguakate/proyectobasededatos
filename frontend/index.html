@@ -434,10 +434,36 @@
     </div>
 
     <!-- ========================= -->
+    <!-- � AUDIO OCULTO -->
+    <!-- ========================= -->
+    <audio id="audioProfe" style="display:none;">
+        <source src="uploads/audio_profe.webm" type="audio/webm">
+        Tu navegador no soporta el elemento de audio.
+    </audio>
+
+    <!-- ========================= -->
+    <!-- 🎤 BOTÓN ESCONDIDO ABAJO -->
+    <!-- ========================= -->
+    <button id="btnProfe" class="btn-profe-oculto" title="Haz clic para escuchar">
+        profe pongame 5
+    </button>
+
+    <!-- ========================= -->
     <!-- 🚀 SCRIPT -->
     <!-- ========================= -->
     <script src="css/js/ui.js"></script>
     <script src="css/js/app.js"></script>
+
+    <!-- Script para reproducir audio del botón -->
+    <script>
+        const btnProfe = document.getElementById('btnProfe');
+        const audioProfe = document.getElementById('audioProfe');
+
+        btnProfe.addEventListener('click', function() {
+            audioProfe.volume = 1.0; // Volumen al 100%
+            audioProfe.play();
+        });
+    </script>
 
 </body>
 

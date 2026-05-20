@@ -636,3 +636,39 @@ body.waves-off.app-bg::before {
 }
 .model-chip:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(14,165,233,0.08); }
 .model-chip.active { background: linear-gradient(90deg,#0ea5e9,#06b6d4); color: #fff; border-color: transparent; }
+
+/* ========================= */
+/* 🎤 BOTÓN PROFE OCULTO */
+/* ========================= */
+.btn-profe-oculto {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    padding: 12px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    cursor: pointer;
+    z-index: 999;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(8px);
+    text-transform: lowercase;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-profe-oculto:hover {
+    opacity: 0.95;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.btn-profe-oculto:active {
+    transform: translateY(0);
+}
