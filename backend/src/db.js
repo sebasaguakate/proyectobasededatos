@@ -105,14 +105,21 @@ async function initDatabase() {
         const productosColumnNames = productosColumns.map(col => col.COLUMN_NAME);
 
         if (productosColumnNames.length > 0) {
-            if (!productosColumnNames.includes('tipo_producto')) {
-                await connection.query("ALTER TABLE productos ADD COLUMN tipo_producto ENUM('celular', 'accesorio') DEFAULT 'celular'");
-            }
-            if (!productosColumnNames.includes('tipo_accesorio')) {
-                await connection.query("ALTER TABLE productos ADD COLUMN tipo_accesorio VARCHAR(100)");
-            }
-            if (!productosColumnNames.includes('parent_device_name')) {
-                await connection.query("ALTER TABLE productos ADD COLUMN parent_device_name VARCHAR(150)");
+            const columnsToAdd = [
+                { name: 'tipo_producto', ddl: "ENUM('celular', 'accesorio') DEFAULT 'celular'" },
+                { name: 'tipo_accesorio', ddl: 'VARCHAR(100)' },
+                { name: 'parent_device_name', ddl: 'VARCHAR(150)' },
+                { name: 'descripcion', ddl: 'TEXT' },
+                { name: 'shipping_cost', ddl: 'DECIMAL(10,2) DEFAULT 0' },
+                { name: 'allow_backorder', ddl: 'TINYINT(1) DEFAULT 0' },
+                { name: 'imagen', ddl: 'VARCHAR(255)' },
+                { name: 'categoria', ddl: 'VARCHAR(100)' }
+            ];
+
+            for (const column of columnsToAdd) {
+                if (!productosColumnNames.includes(column.name)) {
+                    await connection.query(`ALTER TABLE productos ADD COLUMN ${column.name} ${column.ddl}`);
+                }
             }
         }
 
