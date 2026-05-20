@@ -25,12 +25,21 @@
     <!-- ========================= -->
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3 px-4 nav-glass">
 
-        <a class="navbar-brand fw-bold d-flex align-items-center gap-2">
+        <a href="index.html" class="navbar-brand fw-bold d-flex align-items-center gap-2">
             <span class="brand-icon">📱</span>
-            <span>Tienda de Celulares</span>
+            <span class="animated-text typing-effect fade-in-delay-1">Tienda de Celulares</span>
         </a>
 
         <div class="d-flex align-items-center gap-3">
+            <a href="index.html" class="btn btn-home me-2" id="homeBtn" aria-label="Inicio">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M3 10.5L12 4l9 6.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 10.5v7a1 1 0 0 0 1 1h3v-5h6v5h3a1 1 0 0 0 1-1v-7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+                <span>Inicio</span>
+            </a>
             <a href="dashboard.html" class="btn btn-outline-secondary">Mi panel</a>
             <a href="publicidad.html" class="btn btn-outline-warning">Publicidad</a>
 
@@ -94,16 +103,32 @@
         <!-- ========================= -->
         <div class="mb-4 text-end">
             <div class="btn-group" role="group">
-                <button id="publishPhoneBtn" class="btn btn-primary">Publicar celular</button>
-                <button id="publishAccessoryBtn" class="btn btn-outline-primary">Publicar accesorio</button>
+                <button id="publishPhoneBtn" class="btn btn-primary btn-pulse" aria-label="Publicar celular">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect x="7" y="2" width="10" height="20" rx="2" stroke="#fff" stroke-width="1.5"/>
+                            <circle cx="12" cy="18" r="1" fill="#fff" />
+                        </svg>
+                    </span>
+                    <span>Publicar celular</span>
+                </button>
+                <button id="publishAccessoryBtn" class="btn btn-outline-primary btn-pulse" aria-label="Publicar accesorio">
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M12 2v6" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round"/>
+                            <path d="M7 9l5 5 5-5" stroke="#0f172a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+                    <span>Publicar accesorio</span>
+                </button>
             </div>
         </div>
 
         <div id="publishCard" class="card shadow p-4 mb-4 d-none">
 
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="mb-0">
-                    Publicar Producto
+                <h3 id="formTitle" class="mb-0 animated-text fade-in-delay-2">
+                    Publicar celular
                 </h3>
                 <button id="cancelPublishBtn" type="button" class="btn btn-outline-secondary btn-sm">
                     Cancelar
@@ -114,10 +139,21 @@
                 <input type="hidden" id="tipoProducto" value="celular">
 
                 <div class="row">
-                    <div class="col-md-3 mb-3" id="parentDeviceContainer" style="display:none;">
+                    <div class="col-md-3 mb-3 accessory-only" id="parentDeviceContainer" style="display:none;">
                         <label for="parentDevice" class="form-label">¿Accesorio para qué celular? (opcional)</label>
                         <select id="parentDevice" class="form-select">
                             <option value="">Seleccionar un celular...</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3 mb-3 accessory-only" id="accessoryTypeContainer" style="display:none;">
+                        <label for="tipoAccesorio" class="form-label">Tipo de accesorio</label>
+                        <select id="tipoAccesorio" class="form-select">
+                            <option value="Cargador">Cargador</option>
+                            <option value="Vidrio templado">Vidrio templado</option>
+                            <option value="Audífonos">Audífonos</option>
+                            <option value="Estuche">Estuche</option>
+                            <option value="Otro">Otro</option>
                         </select>
                     </div>
 
@@ -194,7 +230,7 @@
                             <div class="form-text">Puedes subir varias imágenes del producto.</div>
                         </div>
 
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-3 phone-only">
                             <label for="condicion" class="form-label">Condición</label>
                             <select id="condicion" class="form-select">
                                 <option value="Nuevo">Nuevo</option>
@@ -203,12 +239,12 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-3 phone-only">
                             <label for="color" class="form-label">Color</label>
                             <input type="text" id="color" class="form-control" placeholder="Color">
                         </div>
 
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-3 phone-only">
                             <label for="almacenamiento" class="form-label">Almacenamiento</label>
                             <input type="text" id="almacenamiento" class="form-control" placeholder="Ej: 128GB">
                         </div>
@@ -383,6 +419,7 @@
     <!-- ========================= -->
     <!-- 🚀 SCRIPT -->
     <!-- ========================= -->
+    <script src="css/js/ui.js"></script>
     <script src="css/js/app.js"></script>
 
 </body>

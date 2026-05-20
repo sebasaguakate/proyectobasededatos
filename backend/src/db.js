@@ -92,16 +92,28 @@ async function initDatabase() {
                 allow_backorder TINYINT(1) DEFAULT 0,
                 imagen VARCHAR(255),
                 tipo_producto ENUM('celular', 'accesorio') DEFAULT 'celular',
+                tipo_accesorio VARCHAR(100),
+                parent_device_name VARCHAR(150),
                 FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
             )
         `);
 
         const [productosColumns] = await connection.query(
-            `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'productos' AND COLUMN_NAME = 'tipo_producto'`,
+            `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'productos'`,
             [dbConfig.database]
         );
-        if (productosColumns.length === 0) {
-            await connection.query("ALTER TABLE productos ADD COLUMN tipo_producto ENUM('celular', 'accesorio') DEFAULT 'celular'");
+        const productosColumnNames = productosColumns.map(col => col.COLUMN_NAME);
+
+        if (productosColumnNames.length > 0) {
+            if (!productosColumnNames.includes('tipo_producto')) {
+                await connection.query("ALTER TABLE productos ADD COLUMN tipo_producto ENUM('celular', 'accesorio') DEFAULT 'celular'");
+            }
+            if (!productosColumnNames.includes('tipo_accesorio')) {
+                await connection.query("ALTER TABLE productos ADD COLUMN tipo_accesorio VARCHAR(100)");
+            }
+            if (!productosColumnNames.includes('parent_device_name')) {
+                await connection.query("ALTER TABLE productos ADD COLUMN parent_device_name VARCHAR(150)");
+            }
         }
 
         await connection.query(`

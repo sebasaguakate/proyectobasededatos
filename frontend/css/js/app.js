@@ -393,6 +393,11 @@ if (form) {
 
         e.preventDefault();
 
+        if (!usuario || !usuario.id_usuario) {
+            showNotification('Debes iniciar sesión para publicar un producto');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('id_usuario', usuario.id_usuario);
         formData.append('nombre_producto', document.getElementById("nombre").value);
@@ -401,11 +406,6 @@ if (form) {
         formData.append('precio', Number(document.getElementById("precio").value));
         formData.append('stock', Number(document.getElementById("stock").value));
         formData.append('tipo_producto', document.getElementById("tipoProducto").value);
-        
-        const parentDevice = document.getElementById("parentDevice");
-        if (parentDevice && parentDevice.value) {
-            formData.append('parent_device_name', parentDevice.value);
-        }
         
         const imagenInput = document.getElementById("imagen");
         if (imagenInput.files[0]) {
@@ -430,6 +430,15 @@ if (form) {
         const back = document.getElementById('allow_backorder').checked;
         formData.append('allow_backorder', back ? 1 : 0);
 
+        if (document.getElementById('tipoProducto').value === 'accesorio') {
+            const tipoAccesorio = document.getElementById('tipoAccesorio').value;
+            const parentDeviceValue = document.getElementById('parentDevice').value;
+            formData.append('tipo_accesorio', tipoAccesorio);
+            if (parentDeviceValue) {
+                formData.append('parent_device_name', parentDeviceValue);
+            }
+        }
+
         try {
 
             const response = await fetch(
@@ -441,7 +450,24 @@ if (form) {
             );
 
             if (!response.ok) {
-                throw new Error('Error al publicar el producto');
+                const text = await response.text();
+                console.error("Publicar producto response error:", response.status, text);
+
+                let message = `Error al publicar el producto (${response.status})`;
+                try {
+                    const errorData = JSON.parse(text);
+                    if (errorData?.message) {
+                        message = errorData.message;
+                    } else if (text) {
+                        message = `Error al publicar el producto: ${text}`;
+                    }
+                } catch (parseError) {
+                    if (text) {
+                        message = `Error al publicar el producto: ${text}`;
+                    }
+                }
+
+                throw new Error(message);
             }
 
             const data = await response.json();
@@ -473,6 +499,8 @@ const publishCard = document.getElementById("publishCard");
 const cancelPublishBtn = document.getElementById("cancelPublishBtn");
 const tipoProductoInput = document.getElementById("tipoProducto");
 const parentDeviceContainer = document.getElementById("parentDeviceContainer");
+const accessoryTypeContainer = document.getElementById("accessoryTypeContainer");
+const formTitle = document.getElementById("formTitle");
 
 function showPublishForm(tipo) {
     if (publishCard) {
@@ -483,13 +511,40 @@ function showPublishForm(tipo) {
     if (tipoProductoInput) {
         tipoProductoInput.value = tipo;
     }
+    if (formTitle) {
+        formTitle.textContent = tipo === "accesorio" ? "Publicar accesorio" : "Publicar celular";
+    }
     if (parentDeviceContainer) {
         parentDeviceContainer.style.display = tipo === "accesorio" ? "block" : "none";
         if (tipo === "accesorio") {
             cargarCelularesDisponibles();
         }
     }
-    document.getElementById("nombre").focus();
+    if (accessoryTypeContainer) {
+        accessoryTypeContainer.style.display = tipo === "accesorio" ? "block" : "none";
+    }
+    const nombreInput = document.getElementById("nombre");
+    if (nombreInput) {
+        nombreInput.placeholder = tipo === "accesorio" ? "Ej: Cable USB-C, Vidrio templado" : "Ej: iPhone 15 Pro";
+        nombreInput.focus();
+    }
+
+    // Mostrar/ocultar campos específicos para celulares vs accesorios
+    const phoneOnlyEls = document.querySelectorAll('.phone-only');
+    phoneOnlyEls.forEach(el => {
+        el.style.display = tipo === 'celular' ? 'block' : 'none';
+        el.querySelectorAll('input, select, textarea').forEach(i => {
+            try { i.required = tipo === 'celular'; } catch(e) {}
+        });
+    });
+
+    const accessoryOnlyEls = document.querySelectorAll('.accessory-only');
+    accessoryOnlyEls.forEach(el => {
+        el.style.display = tipo === 'accesorio' ? 'block' : 'none';
+        el.querySelectorAll('input, select, textarea').forEach(i => {
+            try { i.required = tipo === 'accesorio'; } catch(e) {}
+        });
+    });
 }
 
 async function cargarCelularesDisponibles() {

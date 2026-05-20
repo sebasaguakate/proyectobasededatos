@@ -366,16 +366,140 @@ small {
     padding: 0.65rem 1rem;
 }
 
-
-button {
-    padding: 12px;
-    border: none;
-    background: #222;
-    color: white;
-    border-radius: 5px;
+/* Enhanced global button styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: transform 0.18s cubic-bezier(.2,.9,.2,1), box-shadow 0.18s ease, opacity 0.12s ease;
+    box-shadow: 0 8px 20px rgba(15,23,42,0.06);
     cursor: pointer;
+    border: none;
+    position: relative;
+    overflow: hidden;
 }
 
-button:hover {
-    background: #444;
+.btn:active {
+    transform: translateY(1px) scale(0.995);
 }
+
+/* Primary button */
+.btn-primary {
+    background: linear-gradient(135deg, #0ea5e9 0%, #22c55e 100%);
+    color: #fff;
+    box-shadow: 0 14px 34px rgba(34,197,94,0.12), inset 0 -2px 6px rgba(0,0,0,0.06);
+}
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 20px 48px rgba(34,197,94,0.16);
+}
+
+/* Outline primary */
+.btn-outline-primary {
+    background: transparent;
+    color: #0f172a;
+    border: 2px solid rgba(14,165,233,0.12);
+}
+.btn-outline-primary:hover {
+    background: rgba(14,165,233,0.06);
+    transform: translateY(-2px);
+}
+
+/* Accent for warning/ads */
+.btn-outline-warning {
+    background: linear-gradient(90deg, #f59e0b22, transparent);
+    color: #92400e;
+    border: 1px solid rgba(245,158,11,0.14);
+}
+
+/* Prominent home button */
+.btn-home {
+    background: linear-gradient(90deg, #0ea5e9, #06b6d4);
+    color: #fff;
+    padding: 0.5rem 0.9rem;
+    border-radius: 14px;
+    font-weight: 700;
+}
+.btn-home:hover { transform: translateY(-3px); box-shadow: 0 18px 40px rgba(6,182,212,0.14); }
+
+/* Make navbar brand clickable and interactive */
+.navbar-brand {
+    cursor: pointer;
+    transition: transform 0.18s ease, opacity 0.12s ease;
+}
+.navbar-brand:hover { transform: translateY(-2px); opacity: 0.95; }
+
+/* Make navbar sticky at top for quick access */
+.nav-glass {
+    position: sticky !important;
+    top: 0;
+    z-index: 1080;
+}
+
+/* Button icon sizing */
+.btn svg { width: 18px; height: 18px; vertical-align: middle; }
+.btn .icon { display: inline-flex; align-items: center; justify-content: center; }
+
+/* Home button subtle pulse */
+.btn-home { position: relative; overflow: hidden; }
+.btn-home::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    box-shadow: 0 0 0 0 rgba(6,182,212,0.12);
+    transition: box-shadow 0.5s ease;
+}
+.btn-home:hover::after { box-shadow: 0 10px 40px rgba(6,182,212,0.12); }
+
+/* Small accent animation when clicking publish buttons */
+.btn-pulse:active { transform: translateY(1px) scale(0.995); }
+
+/* Ripple element */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    background: rgba(255,255,255,0.35);
+    opacity: 0.8;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: ripple-anim 700ms ease-out;
+}
+
+@keyframes ripple-anim {
+    to { transform: scale(1.8); opacity: 0; }
+}
+
+/* Text animations */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+.animated-text {
+    display: inline-block;
+    animation: fadeUp 560ms cubic-bezier(.2,.9,.2,1) both;
+}
+
+.typing-effect {
+    font-family: 'Inter', ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid rgba(15,23,42,0.12);
+    width: auto;
+    display: inline-block;
+    animation: typing 2s steps(28, end) 0.2s forwards, fadeUp 600ms ease both;
+}
+
+.fade-in-delay-1 { animation-delay: 0.05s; }
+.fade-in-delay-2 { animation-delay: 0.12s; }
+.fade-in-delay-3 { animation-delay: 0.18s; }

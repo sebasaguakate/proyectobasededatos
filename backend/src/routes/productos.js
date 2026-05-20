@@ -279,8 +279,19 @@ router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagen
         shipping_cost,
         allow_backorder,
         tipo_producto,
+        tipo_accesorio,
         parent_device_name
     } = req.body;
+
+    const parsedIdUsuario = parseInt(id_usuario, 10);
+    const precioValue = parseFloat(precio);
+    const stockValue = parseInt(stock, 10);
+    const shippingCostValue = shipping_cost ? parseFloat(shipping_cost) : 0;
+    const allowBackorderValue = allow_backorder === '1' || allow_backorder === 'true' || allow_backorder === 1 || allow_backorder === true ? 1 : 0;
+
+    if (!parsedIdUsuario || !nombre_producto || !marca || !modelo || Number.isNaN(precioValue) || Number.isNaN(stockValue)) {
+        return res.status(400).json({ success: false, message: 'Faltan campos obligatorios o valores inválidos' });
+    }
 
     const mainImageFile = req.files?.imagen?.[0] || null;
     const extraFiles = req.files?.imagenes || [];
@@ -309,26 +320,30 @@ router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagen
                 shipping_cost,
                 allow_backorder,
                 imagen,
-                tipo_producto
+                tipo_producto,
+                tipo_accesorio,
+                parent_device_name
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
             [
-                id_usuario,
+                parsedIdUsuario,
                 nombre_producto,
                 marca,
                 modelo,
-                precio,
-                stock,
+                precioValue,
+                stockValue,
                 descripcion || null,
                 condicion || null,
                 color || null,
                 almacenamiento || null,
                 categoria || null,
-                shipping_cost || 0,
-                allow_backorder ? 1 : 0,
+                shippingCostValue,
+                allowBackorderValue,
                 imagen,
-                tipo_producto || 'celular'
+                tipo_producto || 'celular',
+                tipo_accesorio || null,
+                parent_device_name || null
             ]
         );
 
@@ -356,11 +371,13 @@ router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagen
 
     } catch (error) {
 
-        console.log(error);
+        console.error("Error creando producto:", error);
+        console.error("Request body:", req.body);
+        console.error("Request files:", req.files);
 
         res.status(500).json({
             success: false,
-            message: error.message
+            message: error.message || 'Error interno al crear el producto'
         });
     }
 });
