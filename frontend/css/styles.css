@@ -326,6 +326,27 @@ small {
 
 /* EOF UI overrides */
 
+/* neon white text and input styles */
+body, .app-bg, .container, .card, .nav-glass {
+    color: #eaffff !important;
+}
+
+/* inputs and selects: dark translucent background with neon white text and border */
+.form-control, .form-select, textarea, input[type="text"], input[type="number"], input[type="search"] {
+    background: rgba(0,0,0,0.28) !important;
+    color: #eaffff !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+    box-shadow: none !important;
+}
+.form-control::placeholder { color: rgba(234,255,255,0.6) !important; }
+
+/* disable waves when body has class 'waves-off' */
+body.waves-off.app-bg::after,
+body.waves-off.app-bg::before {
+    opacity: 0 !important;
+    animation: none !important;
+}
+
 .form-control,
 .form-select {
     background: #f8fafc;

@@ -767,6 +767,23 @@ if (!usuario) {
     renderCarrito();
 }
 
+// Waves toggle control
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('toggleWavesBtn');
+    if (!toggleBtn) return;
+
+    // initialize state from localStorage
+    const wavesOff = localStorage.getItem('wavesOff') === '1';
+    if (wavesOff) document.body.classList.add('waves-off');
+    toggleBtn.textContent = `Olas: ${wavesOff ? 'Off' : 'On'}`;
+
+    toggleBtn.addEventListener('click', () => {
+        const isOff = document.body.classList.toggle('waves-off');
+        toggleBtn.textContent = `Olas: ${isOff ? 'Off' : 'On'}`;
+        localStorage.setItem('wavesOff', isOff ? '1' : '0');
+    });
+});
+
 // ==========================
 // 🏷️ CALIFICAR PRODUCTO
 // ==========================
