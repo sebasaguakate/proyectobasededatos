@@ -2,6 +2,49 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
+function parseNumber(value) {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
+function isPositiveInteger(value) {
+    return Number.isInteger(value) && value > 0;
+}
+
+function validatePublicityPayload(body) {
+    const errors = {};
+    const { id_producto, id_usuario, precio_pago, dias } = body;
+
+    const parsedProduct = parseNumber(id_producto);
+    const parsedUser = parseNumber(id_usuario);
+    const parsedDays = parseNumber(dias);
+    const parsedPrice = parseNumber(precio_pago);
+
+    if (!parsedProduct || !isPositiveInteger(parsedProduct)) {
+        errors.id_producto = 'Producto inválido.';
+    }
+    if (!parsedUser || !isPositiveInteger(parsedUser)) {
+        errors.id_usuario = 'Usuario inválido.';
+    }
+    if (parsedPrice === null || parsedPrice <= 0) {
+        errors.precio_pago = 'Precio de publicidad inválido.';
+    }
+    if (!parsedDays || !isPositiveInteger(parsedDays)) {
+        errors.dias = 'Ingresa un número de días válido.';
+    }
+
+    return { errors, values: { id_producto: parsedProduct, id_usuario: parsedUser, precio_pago: parsedPrice, dias: parsedDays } };
+}
+
+function normalizeImagePath(src) {
+    if (!src || typeof src !== 'string') return src;
+    const trimmed = src.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    if (trimmed.startsWith('/uploads/')) return trimmed;
+    if (trimmed.startsWith('uploads/')) return '/' + trimmed;
+    return '/uploads/' + trimmed;
+}
+
 // =========================
 // OBTENER PRODUCTOS DESTACADOS
 // =========================
@@ -42,6 +85,8 @@ router.get("/", async (req, res) => {
                 if (!row.imagen && row.imagenes.length > 0) {
                     row.imagen = row.imagenes[0];
                 }
+                row.imagen = normalizeImagePath(row.imagen);
+                row.imagenes = row.imagenes.map(normalizeImagePath);
             });
         }
 
@@ -56,16 +101,17 @@ router.get("/", async (req, res) => {
 // COMPRAR PUBLICIDAD
 // =========================
 router.post("/", async (req, res) => {
-    const { id_producto, id_usuario, precio_pago, dias } = req.body;
-
-    if (!id_producto || !id_usuario || !precio_pago || !dias) {
-        return res.status(400).json({ success: false, message: "Faltan datos requeridos" });
+    const validation = validatePublicityPayload(req.body);
+    if (Object.keys(validation.errors).length > 0) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos', errors: validation.errors });
     }
+
+    const { id_producto, id_usuario, precio_pago, dias } = validation.values;
 
     try {
         const fecha_inicio = new Date();
         const fecha_fin = new Date(fecha_inicio);
-        fecha_fin.setDate(fecha_fin.getDate() + parseInt(dias));
+        fecha_fin.setDate(fecha_fin.getDate() + dias);
 
         const [result] = await pool.query(`
             INSERT INTO publicidades (id_producto, id_usuario, precio_pago, fecha_inicio, fecha_fin, estado)

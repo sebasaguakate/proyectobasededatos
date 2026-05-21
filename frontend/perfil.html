@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Tienda</title>
+    <link href="assets/bootstrap.min.css" rel="stylesheet">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body class="app-bg">
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm py-3 px-4 nav-glass">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="index.html">
+            <span class="brand-icon">📱</span>
+            <span>Tienda de Celulares</span>
+        </a>
+        <div class="d-flex align-items-center gap-3">
+            <a href="index.html" class="btn btn-outline-light">Inicio</a>
+            <a href="dashboard.html" class="btn btn-outline-secondary">Mi panel</a>
+            <a href="perfil.html" class="btn btn-primary">Mi perfil</a>
+            <span id="usuarioInfo" class="text-white"></span>
+            <button type="button" id="logoutBtn" class="btn btn-danger">Cerrar sesión</button>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="row g-4">
+            <main class="col-lg-7">
+                <div class="card shadow-sm p-4 bg-glass">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="mb-1">Perfil de tu tienda</h3>
+                            <p class="text-muted mb-0">Personaliza los datos de tu tienda de celulares y muestra tu información real.</p>
+                        </div>
+                    </div>
+
+                    <form id="perfilForm">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="nombreTienda" class="form-label">Nombre de la tienda</label>
+                                <input type="text" id="nombreTienda" class="form-control" placeholder="Ej: Celulares Protech" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="descripcion" class="form-label">Descripción de la tienda</label>
+                                <textarea id="descripcion" class="form-control" rows="3" placeholder="Ej: Venta y reparación de celulares, accesorios y planes de financiamiento." required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="direccion" class="form-label">Dirección física</label>
+                                <input type="text" id="direccion" class="form-control" placeholder="Ej: Av. Principal 123, Local 5" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="tel" id="telefono" class="form-control" placeholder="Ej: 987 654 321" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Correo de contacto</label>
+                                <input type="email" id="email" class="form-control" placeholder="contacto@tiendacelular.com" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="horario" class="form-label">Horario de atención</label>
+                                <input type="text" id="horario" class="form-control" placeholder="Lun a Vie 9:00 a 18:00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="whatsapp" class="form-label">WhatsApp</label>
+                                <input type="text" id="whatsapp" class="form-control" placeholder="Ej: +57 300 123 4567">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="redes" class="form-label">Redes sociales</label>
+                                <input type="text" id="redes" class="form-control" placeholder="Ej: @celularesprotech" aria-describedby="redesHelp">
+                                <div id="redesHelp" class="form-text">Puedes indicar Instagram, Facebook o Telegram.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="nombrePropietario" class="form-label">Nombre del propietario</label>
+                                <input type="text" id="nombrePropietario" class="form-control" placeholder="Ej: Juan Pérez" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="documento" class="form-label">Documento / NIT</label>
+                                <input type="text" id="documento" class="form-control" placeholder="Ej: 1234567890" required>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex flex-wrap gap-2">
+                            <button type="submit" class="btn btn-primary">Guardar perfil</button>
+                            <button type="button" id="resetPerfilBtn" class="btn btn-outline-secondary">Restablecer</button>
+                        </div>
+
+                        <div id="perfilError" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                        <div id="perfilSuccess" class="alert alert-success mt-3 d-none" role="alert">Perfil guardado correctamente.</div>
+                    </form>
+                </div>
+            </main>
+
+            <aside class="col-lg-5">
+                <div class="card shadow-sm p-4 bg-glass">
+                    <h4 class="mb-3">Vista previa de la tienda</h4>
+                    <div id="previewCard" class="border rounded-4 p-4 bg-white text-dark">
+                        <h5 class="mb-2">Información de la tienda</h5>
+                        <p id="previewNombre" class="h5 fw-bold mb-2">-</p>
+                        <p id="previewDescripcion" class="text-muted mb-3">Completa los datos para ver una vista previa en tiempo real.</p>
+                        <ul class="list-unstyled mb-3">
+                            <li><strong>Dirección:</strong> <span id="previewDireccion">-</span></li>
+                            <li><strong>Teléfono:</strong> <span id="previewTelefono">-</span></li>
+                            <li><strong>Email:</strong> <span id="previewEmail">-</span></li>
+                            <li><strong>Horario:</strong> <span id="previewHorario">-</span></li>
+                            <li><strong>WhatsApp:</strong> <span id="previewWhatsapp">-</span></li>
+                            <li><strong>Redes:</strong> <span id="previewRedes">-</span></li>
+                        </ul>
+                        <div class="border-top pt-3">
+                            <p class="mb-1"><strong>Propietario:</strong> <span id="previewPropietario">-</span></p>
+                            <p class="mb-0"><strong>Documento:</strong> <span id="previewDocumento">-</span></p>
+                        </div>
+                        <div class="mt-4">
+                            <p class="mb-1"><strong>Usuario actual:</strong></p>
+                            <p id="previewUser" class="text-secondary mb-0">-</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="css/js/perfil.js"></script>
+</body>
+
+</html>

@@ -10,6 +10,19 @@ const publishLink = document.getElementById('publishLink');
 const sectionProductos = document.getElementById('sectionProductos');
 const sectionVentas = document.getElementById('sectionVentas');
 const sectionCompras = document.getElementById('sectionCompras');
+let misProductos = [];
+
+function normalizeFrontendImage(src) {
+    if (!src || typeof src !== 'string') return src;
+    const trimmed = src.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
+        return trimmed;
+    }
+    if (trimmed.startsWith('uploads/')) {
+        return '/' + trimmed;
+    }
+    return '/uploads/' + trimmed;
+}
 
 if (!usuario) {
     window.location.href = 'login.html';
@@ -66,37 +79,147 @@ async function loadMisProductos() {
         const res = await fetch(`${window.location.origin}/productos/mis-productos/${usuario.id_usuario}`);
         const data = await res.json();
         const productos = data.rows || [];
+        misProductos = productos;
 
         if (!productos.length) {
             sectionProductos.innerHTML = '<div class="alert alert-info">Aún no has publicado productos.</div>';
             return;
         }
 
-        sectionProductos.innerHTML = productos.map(p => `
-            <div class="card mb-3 shadow-sm">
-                <div class="row g-0 align-items-center">
-                    <div class="col-md-4">
-                        <img src="${p.imagen || 'https://via.placeholder.com/400'}" class="img-fluid rounded-start" style="height:180px; object-fit:cover;" alt="${p.nombre_producto}">
-                    </div>
-                    <div class="col-md-8">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h5 class="card-title mb-1">${p.nombre_producto}</h5>
-                                    <p class="mb-1 text-muted">${p.marca} ${p.modelo}</p>
-                                    <p class="mb-1">$${p.precio} · Stock: ${p.stock}</p>
-                                    <small class="text-muted">Rating: ${Number(p.avg_rating || 0).toFixed(1)} (${p.rating_count || 0})</small>
-                                </div>
-                                <button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='producto.html?id=${p.id_producto}'">Ver</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+        sectionProductos.innerHTML = productos.map(p => {
+            const imageSrc = p.imagen ? normalizeFrontendImage(p.imagen) : 'https://via.placeholder.com/400';
+            return ''
+                + '<div class="card mb-3 shadow-sm">'
+                + '<div class="row g-0 align-items-center">'
+                + '<div class="col-md-4">'
+                + `<img src="${imageSrc}" class="img-fluid rounded-start" style="height:180px; object-fit:cover;" alt="${p.nombre_producto}">`
+                + '</div>'
+                + '<div class="col-md-8">'
+                + '<div class="card-body">'
+                + '<div class="d-flex justify-content-between align-items-start">'
+                + '<div>'
+                + `<h5 class="card-title mb-1">${p.nombre_producto}</h5>`
+                + `<p class="mb-1 text-muted">${p.marca} ${p.modelo}</p>`
+                + `<p class="mb-1">$${p.precio} · Stock: ${p.stock}</p>`
+                + `<small class="text-muted">Rating: ${Number(p.avg_rating || 0).toFixed(1)} (${p.rating_count || 0})</small>`
+                + '</div>'
+                + '<div class="btn-group" role="group">'
+                + `<button class="btn btn-sm btn-outline-warning" onclick="editarProducto(${p.id_producto})">Editar</button>`
+                + `<button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${p.id_producto})">Eliminar</button>`
+                + `<button class="btn btn-sm btn-outline-secondary" onclick="window.location.href='producto.html?id=${p.id_producto}'">Ver</button>`
+                + '</div>'
+                + '</div>'
+                + '</div>'
+                + '</div>'
+                + '</div>'
+                + '</div>';
+        }).join('');
     } catch (error) {
         console.error(error);
         sectionProductos.innerHTML = '<div class="alert alert-danger">Error cargando tus productos.</div>';
+    }
+}
+
+async function eliminarProducto(id) {
+    if (!confirm('¿Eliminar este producto? Esta acción no se puede deshacer.')) return;
+
+    try {
+        const res = await fetch(`${window.location.origin}/productos/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!res.ok) {
+            console.error('Eliminar producto falló:', res.status);
+            alert('No se pudo eliminar el producto. Intenta de nuevo.');
+            return;
+        }
+
+        await loadMisProductos();
+    } catch (error) {
+        console.error('Error eliminando producto:', error);
+        alert('Error eliminando el producto. Revisa la consola para más detalles.');
+    }
+}
+
+async function editarProducto(id) {
+    const producto = misProductos.find(p => p.id_producto === id);
+    if (!producto) {
+        alert('Producto no encontrado para editar.');
+        return;
+    }
+
+    const nuevoNombre = prompt('Nombre del producto:', producto.nombre_producto);
+    if (nuevoNombre === null) return;
+
+    const nuevaMarca = prompt('Marca:', producto.marca);
+    if (nuevaMarca === null) return;
+
+    const nuevoModelo = prompt('Modelo:', producto.modelo);
+    if (nuevoModelo === null) return;
+
+    const nuevoPrecio = prompt('Precio:', producto.precio);
+    if (nuevoPrecio === null) return;
+
+    const nuevoStock = prompt('Stock:', producto.stock);
+    if (nuevoStock === null) return;
+
+    const nuevaCategoria = prompt('Categoría:', producto.categoria || 'Smartphones');
+    if (nuevaCategoria === null) return;
+
+    const nuevaDescripcion = prompt('Descripción:', producto.descripcion || '');
+    if (nuevaDescripcion === null) return;
+
+    const nuevaCondicion = prompt('Condición:', producto.condicion || 'Nuevo');
+    if (nuevaCondicion === null) return;
+
+    const nuevoColor = prompt('Color:', producto.color || '');
+    if (nuevoColor === null) return;
+
+    const nuevoAlmacenamiento = prompt('Almacenamiento:', producto.almacenamiento || '');
+    if (nuevoAlmacenamiento === null) return;
+
+    const nuevoShippingCost = prompt('Costo de envío:', producto.shipping_cost || '0');
+    if (nuevoShippingCost === null) return;
+
+    const allowBackorder = confirm('¿Permitir pedidos cuando no hay stock?');
+
+    const actualizado = {
+        id_usuario: usuario.id_usuario,
+        nombre_producto: nuevoNombre,
+        marca: nuevaMarca,
+        modelo: nuevoModelo,
+        precio: Number(nuevoPrecio),
+        stock: Number(nuevoStock),
+        descripcion: nuevaDescripcion,
+        condicion: nuevaCondicion,
+        color: nuevoColor,
+        almacenamiento: nuevoAlmacenamiento,
+        categoria: nuevaCategoria,
+        shipping_cost: Number(nuevoShippingCost),
+        allow_backorder: allowBackorder ? 1 : 0,
+        tipo_producto: producto.tipo_producto || 'celular',
+        tipo_accesorio: producto.tipo_accesorio || null,
+        parent_device_name: producto.parent_device_name || null
+    };
+
+    try {
+        const res = await fetch(`${window.location.origin}/productos/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(actualizado)
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('Editar producto falló:', res.status, errorText);
+            alert('No se pudo actualizar el producto. Revisa la consola para más detalles.');
+            return;
+        }
+
+        await loadMisProductos();
+    } catch (error) {
+        console.error('Error editando producto:', error);
+        alert('Error editando el producto. Revisa la consola para más detalles.');
     }
 }
 

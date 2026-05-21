@@ -22,7 +22,217 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage: storage });
+const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: MAX_IMAGE_SIZE,
+        files: 9
+    },
+    fileFilter: (req, file, cb) => {
+        if (ACCEPTED_IMAGE_TYPES.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Solo se permiten imágenes JPG, PNG, WEBP o GIF.'));
+        }
+    }
+});
+
+function parseBoolean(value) {
+    return value === '1' || value === 'true' || value === 1 || value === true ? 1 : 0;
+}
+
+function isPositiveInteger(value) {
+    return Number.isInteger(value) && value > 0;
+}
+
+function isNonNegativeInteger(value) {
+    return Number.isInteger(value) && value >= 0;
+}
+
+function parseNumber(value) {
+    const parsed = Number(value);
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
+function isTechRelatedText(value) {
+    const text = String(value || '').toLowerCase();
+    const pattern = /\b(celular|smartphone|smartphones|telefono|tel[eé]fono|tablet|tablets|tecnolog[ií]a|electr[oó]nica|gadget|gadgets|accesorio|accesorios|cargador|aud[ií]fono|audifono|auricular|auriculares|estuche|protector|vidrio templado|usb|tipo\s?-?c|bater[ií]a|power bank|smartwatch|reloj inteligente|m[oó]vil|iphone|android|macbook|computadora|laptop|portatil|portátil|headset|case|repuesto|acc[eé]sorio)\b/;
+    return pattern.test(text);
+}
+
+function isTechProductRelated(body) {
+    const combinedText = [body.nombre_producto, body.marca, body.modelo, body.categoria, body.descripcion, body.tipo_accesorio, body.parent_device_name]
+        .filter(Boolean)
+        .join(' ');
+    return isTechRelatedText(combinedText);
+}
+
+function validateProductPayload(body, files = {}, isUpdate = false) {
+    const errors = {};
+    const {
+        id_usuario,
+        nombre_producto,
+        marca,
+        modelo,
+        precio,
+        stock,
+        descripcion,
+        condicion,
+        color,
+        almacenamiento,
+        categoria,
+        shipping_cost,
+        allow_backorder,
+        tipo_producto,
+        tipo_accesorio
+    } = body;
+
+    const parsedIdUsuario = parseNumber(id_usuario);
+    if (!parsedIdUsuario || !isPositiveInteger(parsedIdUsuario)) {
+        errors.id_usuario = 'Usuario inválido. Debes iniciar sesión para publicar.';
+    }
+
+    if (!nombre_producto || !nombre_producto.trim()) {
+        errors.nombre_producto = 'El nombre del producto es obligatorio.';
+    } else if (nombre_producto.trim().length > 150) {
+        errors.nombre_producto = 'El nombre del producto es demasiado largo.';
+    }
+
+    if (!marca || !marca.trim()) {
+        errors.marca = 'La marca es obligatoria.';
+    } else if (marca.trim().length > 100) {
+        errors.marca = 'La marca es demasiado larga.';
+    }
+
+    if (!modelo || !modelo.trim()) {
+        errors.modelo = 'El modelo es obligatorio.';
+    } else if (modelo.trim().length > 100) {
+        errors.modelo = 'El modelo es demasiado largo.';
+    }
+
+    const parsedPrice = parseNumber(precio);
+    if (parsedPrice === null || parsedPrice <= 0) {
+        errors.precio = 'El precio debe ser un número mayor a 0.';
+    }
+
+    const parsedStock = parseNumber(stock);
+    if (parsedStock === null || !isNonNegativeInteger(parsedStock)) {
+        errors.stock = 'El stock debe ser un número entero mayor o igual a 0.';
+    }
+
+    const parsedShippingCost = shipping_cost !== undefined && shipping_cost !== null && shipping_cost !== '' ? parseNumber(shipping_cost) : 0;
+    if (parsedShippingCost === null || parsedShippingCost < 0) {
+        errors.shipping_cost = 'El costo de envío debe ser un número mayor o igual a 0.';
+    }
+
+    if (!categoria || !categoria.trim()) {
+        errors.categoria = 'La categoría es obligatoria.';
+    } else if (categoria.trim().length > 100) {
+        errors.categoria = 'La categoría es demasiado larga.';
+    }
+
+    if (!descripcion || !descripcion.trim()) {
+        errors.descripcion = 'La descripción es obligatoria.';
+    } else if (descripcion.trim().length > 2000) {
+        errors.descripcion = 'La descripción es demasiado larga.';
+    }
+
+    const techRelated = isTechProductRelated({
+        nombre_producto,
+        marca,
+        modelo,
+        categoria,
+        descripcion,
+        tipo_producto,
+        tipo_accesorio,
+        parent_device_name: body.parent_device_name
+    });
+
+    if (!techRelated) {
+        errors.categoria = 'El producto debe ser de celulares o tecnología. Usa categorías y descripción relacionadas con tecnología.';
+    }
+
+    if (condicion && condicion.trim().length > 50) {
+        errors.condicion = 'La condición es demasiado larga.';
+    }
+
+    if (color && color.trim().length > 50) {
+        errors.color = 'El color es demasiado largo.';
+    }
+
+    if (almacenamiento && almacenamiento.trim().length > 50) {
+        errors.almacenamiento = 'El almacenamiento es demasiado largo.';
+    }
+
+    const tipoProductoValue = tipo_producto ? tipo_producto.trim() : 'celular';
+    if (!['celular', 'accesorio'].includes(tipoProductoValue)) {
+        errors.tipo_producto = 'Tipo de producto inválido.';
+    }
+
+    if (tipoProductoValue === 'accesorio') {
+        if (!tipo_accesorio || !tipo_accesorio.trim()) {
+            errors.tipo_accesorio = 'El tipo de accesorio es obligatorio para accesorios.';
+        } else if (tipo_accesorio.trim().length > 100) {
+            errors.tipo_accesorio = 'El tipo de accesorio es demasiado largo.';
+        }
+    }
+
+    const imageFiles = [...(files.imagen || []), ...(files.imagenes || [])];
+    if (!isUpdate && imageFiles.length === 0) {
+        errors.imagen = 'Debes subir al menos una imagen del producto.';
+    }
+
+    imageFiles.forEach((file, idx) => {
+        if (!ACCEPTED_IMAGE_TYPES.includes(file.mimetype)) {
+            errors[`imagen_${idx}`] = 'Solo se permiten imágenes JPG, PNG, WEBP o GIF.';
+        }
+        if (file.size > MAX_IMAGE_SIZE) {
+            errors[`imagen_${idx}`] = 'Cada imagen debe ser menor a 5 MB.';
+        }
+    });
+
+    return {
+        errors,
+        values: {
+            id_usuario: parsedIdUsuario,
+            nombre_producto: nombre_producto?.trim(),
+            marca: marca?.trim(),
+            modelo: modelo?.trim(),
+            precio: parsedPrice,
+            stock: parsedStock,
+            descripcion: descripcion?.trim(),
+            condicion: condicion?.trim() || null,
+            color: color?.trim() || null,
+            almacenamiento: almacenamiento?.trim() || null,
+            categoria: categoria?.trim(),
+            shipping_cost: parsedShippingCost,
+            allow_backorder: parseBoolean(allow_backorder),
+            tipo_producto: tipoProductoValue,
+            tipo_accesorio: tipo_accesorio?.trim() || null,
+            parent_device_name: body.parent_device_name?.trim() || null
+        }
+    };
+}
+
+function normalizeImagePath(src) {
+    if (!src || typeof src !== 'string') return src;
+    const trimmed = src.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    if (trimmed.startsWith('/uploads/')) return trimmed;
+    if (trimmed.startsWith('uploads/')) return '/' + trimmed;
+    return '/uploads/' + trimmed;
+}
+
+function normalizeProductImages(product) {
+    if (!product) return;
+    if (product.imagen) product.imagen = normalizeImagePath(product.imagen);
+    if (Array.isArray(product.imagenes)) {
+        product.imagenes = product.imagenes.map(normalizeImagePath);
+    }
+}
 
 async function ensureProductoColumns() {
     try {
@@ -146,10 +356,12 @@ router.get("/", async (req, res) => {
                 if (!row.imagen && row.imagenes.length > 0) {
                     row.imagen = row.imagenes[0];
                 }
+                normalizeProductImages(row);
             });
         } else {
             rows.forEach(row => {
                 row.imagenes = [];
+                normalizeProductImages(row);
             });
         }
 
@@ -207,10 +419,12 @@ router.get("/mis-productos/:id_usuario", async (req, res) => {
                 if (!row.imagen && row.imagenes.length > 0) {
                     row.imagen = row.imagenes[0];
                 }
+                normalizeProductImages(row);
             });
         } else {
             rows.forEach(row => {
                 row.imagenes = [];
+                normalizeProductImages(row);
             });
         }
 
@@ -304,35 +518,12 @@ router.get("/mis-ventas/:id_usuario", async (req, res) => {
 router.post("/", upload.fields([{ name: 'imagen', maxCount: 1 }, { name: 'imagenes', maxCount: 8 }]), async (req, res) => {
     await ensureProductoColumns();
 
-    const {
-        id_usuario,
-        nombre_producto,
-        marca,
-        modelo,
-        precio,
-        stock,
-        descripcion,
-        condicion,
-        color,
-        almacenamiento,
-        categoria,
-        shipping_cost,
-        allow_backorder,
-        tipo_producto,
-        tipo_accesorio,
-        parent_device_name
-    } = req.body;
-
-    const parsedIdUsuario = parseInt(id_usuario, 10);
-    const precioValue = parseFloat(precio);
-    const stockValue = parseInt(stock, 10);
-    const shippingCostValue = shipping_cost ? parseFloat(shipping_cost) : 0;
-    const allowBackorderValue = allow_backorder === '1' || allow_backorder === 'true' || allow_backorder === 1 || allow_backorder === true ? 1 : 0;
-
-    if (!parsedIdUsuario || !nombre_producto || !marca || !modelo || Number.isNaN(precioValue) || Number.isNaN(stockValue)) {
-        return res.status(400).json({ success: false, message: 'Faltan campos obligatorios o valores inválidos' });
+    const validation = validateProductPayload(req.body, req.files || {});
+    if (Object.keys(validation.errors).length > 0) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos', errors: validation.errors });
     }
 
+    const values = validation.values;
     const mainImageFile = req.files?.imagen?.[0] || null;
     const extraFiles = req.files?.imagenes || [];
     const imagen = mainImageFile
@@ -457,6 +648,7 @@ router.get("/:id", async (req, res) => {
         if (!product.imagen && product.imagenes.length > 0) {
             product.imagen = product.imagenes[0];
         }
+        normalizeProductImages(product);
 
         // Registrar una visita a este producto
         try {
@@ -488,6 +680,10 @@ router.put("/:id", async (req, res) => {
     await ensureProductoColumns();
 
     const { id } = req.params;
+    const validation = validateProductPayload(req.body, {}, true);
+    if (Object.keys(validation.errors).length > 0) {
+        return res.status(400).json({ success: false, message: 'Datos inválidos', errors: validation.errors });
+    }
 
     const {
         nombre_producto,

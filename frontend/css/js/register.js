@@ -22,6 +22,29 @@ if (usuarioLogeado) {
     window.location.href = "index.html";
 }
 
+function isValidEmail(value) {
+    return /^\S+@\S+\.\S+$/.test(value);
+}
+
+function validateRegisterData(datos) {
+    const errors = [];
+    if (!datos.nombre || !datos.nombre.trim() || datos.nombre.trim().length < 2) {
+        errors.push('El nombre debe tener al menos 2 caracteres.');
+    }
+    if (!datos.apellido || !datos.apellido.trim() || datos.apellido.trim().length < 2) {
+        errors.push('El apellido debe tener al menos 2 caracteres.');
+    }
+    if (!datos.correo || !datos.correo.trim()) {
+        errors.push('El correo es obligatorio.');
+    } else if (!isValidEmail(datos.correo.trim())) {
+        errors.push('El correo no tiene un formato válido.');
+    }
+    if (!datos.password || datos.password.length < 8) {
+        errors.push('La contraseña debe tener al menos 8 caracteres.');
+    }
+    return errors;
+}
+
 const form = document.getElementById("registerForm");
 
 form.addEventListener("submit", async (e) => {
@@ -37,6 +60,13 @@ form.addEventListener("submit", async (e) => {
     const errorBox = document.getElementById("registerError");
     errorBox.classList.add("d-none");
     errorBox.textContent = "";
+
+    const validationErrors = validateRegisterData(datos);
+    if (validationErrors.length > 0) {
+        errorBox.textContent = validationErrors.join(' ');
+        errorBox.classList.remove('d-none');
+        return;
+    }
 
     try {
         const url = window.location.origin + "/auth/register";

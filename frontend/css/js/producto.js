@@ -46,8 +46,20 @@ function cargarProducto() {
         });
 }
 
+function normalizeFrontendImage(src) {
+    if (!src || typeof src !== 'string') return src;
+    const trimmed = src.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
+        return trimmed;
+    }
+    if (trimmed.startsWith('uploads/')) {
+        return '/' + trimmed;
+    }
+    return '/uploads/' + trimmed;
+}
+
 function renderProducto(product) {
-    const imagenes = product.imagenes && product.imagenes.length ? product.imagenes : (product.imagen ? [product.imagen] : []);
+    const imagenes = (product.imagenes && product.imagenes.length ? product.imagenes : (product.imagen ? [product.imagen] : [])).map(normalizeFrontendImage);
     const mainImage = imagenes[0] || 'https://via.placeholder.com/500';
 
     productoContainer.innerHTML = `

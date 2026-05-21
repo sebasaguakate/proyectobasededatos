@@ -24,6 +24,23 @@ if (usuarioLogeado) {
 
 const form = document.getElementById("loginForm");
 
+function isValidEmail(value) {
+    return /^\S+@\S+\.\S+$/.test(value);
+}
+
+function validateLoginData(datos) {
+    const errors = [];
+    if (!datos.correo || !datos.correo.trim()) {
+        errors.push('El correo es obligatorio.');
+    } else if (!isValidEmail(datos.correo.trim())) {
+        errors.push('El correo no tiene un formato válido.');
+    }
+    if (!datos.password || !datos.password.trim()) {
+        errors.push('La contraseña es obligatoria.');
+    }
+    return errors;
+}
+
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -35,6 +52,13 @@ form.addEventListener("submit", async (e) => {
     const errorBox = document.getElementById("loginError");
     errorBox.classList.add("d-none");
     errorBox.textContent = "";
+
+    const validationErrors = validateLoginData(datos);
+    if (validationErrors.length > 0) {
+        errorBox.textContent = validationErrors.join(' ');
+        errorBox.classList.remove('d-none');
+        return;
+    }
 
     try {
         const url = window.location.origin + "/auth/login";

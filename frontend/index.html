@@ -35,12 +35,13 @@
                 <span class="icon">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M3 10.5L12 4l9 6.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5 10.5v7a1 1 0 0 0 1 1h3v-5h6v5h3a1 1 0 0 0 1-1v-7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 10.5v7a1 1 0 0 0 1 1h3v-5h6v-5h3a1 1 0 0 0 1-1v-7" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </span>
                 <span>Inicio</span>
             </a>
             <a href="dashboard.html" class="btn btn-outline-secondary">Mi panel</a>
+            <a href="perfil.html" class="btn btn-outline-light">Mi perfil</a>
             <a href="publicidad.html" class="btn btn-outline-warning">Publicidad</a>
 
             <span
@@ -56,7 +57,7 @@
             >
             </span>
 
-            <button type="button" id="toggleWavesBtn" class="btn btn-outline-light me-2" title="Alternar animación de fondo">Olas: On</button>
+            <button type="button" id="toggleWavesBtn" class="btn btn-outline-light me-2" title="Alternar animación de fondo">Olas: Off</button>
 
             <button
                 type="button"
@@ -268,7 +269,24 @@
 
                         <div class="col-md-3 mb-3">
                             <label for="categoria" class="form-label">Categoría</label>
-                            <input type="text" id="categoria" class="form-control" placeholder="Ej: Smartphones">
+                            <select id="categoria" class="form-select" required>
+                                <option value="">Selecciona una categoría</option>
+                                <option value="Smartphones">Smartphones</option>
+                                <option value="Tablets">Tablets</option>
+                                <option value="Accesorios">Accesorios para celular</option>
+                                <option value="Cargadores">Cargadores</option>
+                                <option value="Audífonos">Audífonos</option>
+                                <option value="Smartwatches">Smartwatches</option>
+                                <option value="Repuestos">Repuestos</option>
+                                <option value="Fundas y protectores">Fundas y protectores</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3 d-none" id="categoriaOtraContainer">
+                            <label for="categoriaOtra" class="form-label">Especifica otra categoría</label>
+                            <input type="text" id="categoriaOtra" class="form-control" placeholder="Ej: Accesorios Bluetooth">
+                            <div class="form-text">Solo si seleccionas "Otro".</div>
                         </div>
 
                         <div class="col-md-6 mb-3">
@@ -434,17 +452,10 @@
     </div>
 
     <!-- ========================= -->
-    <!-- � AUDIO OCULTO -->
-    <!-- ========================= -->
-    <audio id="audioProfe" style="display:none;">
-        <source src="uploads/audio_profe.webm" type="audio/webm">
-        Tu navegador no soporta el elemento de audio.
-    </audio>
-
     <!-- ========================= -->
     <!-- 🎤 AUDIO OCULTO -->
     <!-- ========================= -->
-    <audio id="audioProfe" style="display:none;">
+    <audio id="audioProfe" style="display:none;" preload="auto">
         <source src="uploads/audio_profe.webm" type="audio/webm">
         Tu navegador no soporta el elemento de audio.
     </audio>
@@ -462,6 +473,9 @@
     <button id="btnProfe" class="btn-profe-oculto" title="Haz clic para escuchar">
         profe pongame 5
     </button>
+    <button id="stopProfeBtn" class="btn-profe-stop d-none" title="Cerrar profe y detener sonido">
+        Cerrar profe
+    </button>
 
     <!-- ========================= -->
     <!-- 🚀 SCRIPT -->
@@ -472,18 +486,99 @@
     <!-- Script para reproducir audio del botón -->
     <script>
         const btnProfe = document.getElementById('btnProfe');
+        const stopProfeBtn = document.getElementById('stopProfeBtn');
         const audioProfe = document.getElementById('audioProfe');
         const memeContainer = document.getElementById('memeContainer');
 
-        btnProfe.addEventListener('click', function() {
-            audioProfe.volume = 1.0; // Volumen al 100%
-            audioProfe.play();
-            memeContainer.classList.remove('d-none');
-        });
+        function logProfe(message, data) {
+            console.debug(`[Profe] ${message}`, data || 'sin datos');
+        }
 
-        audioProfe.addEventListener('ended', function() {
-            setTimeout(() => memeContainer.classList.add('d-none'), 2000);
-        });
+        function hideProfeWidgets() {
+            memeContainer.classList.add('d-none');
+            stopProfeBtn.classList.add('d-none');
+        }
+
+        function stopProfeAudio() {
+            if (!audioProfe) return;
+            try {
+                audioProfe.pause();
+                audioProfe.currentTime = 0;
+                logProfe('Audio detenido y reiniciado.');
+            } catch (error) {
+                console.error('[Profe] Error al detener audio:', error);
+            }
+            hideProfeWidgets();
+        }
+
+        if (!btnProfe) {
+            console.error('[Profe] No se encontró el botón btnProfe en el DOM.');
+        }
+        if (!audioProfe) {
+            console.error('[Profe] No se encontró el elemento audioProfe en el DOM.');
+        }
+        if (!memeContainer) {
+            console.error('[Profe] No se encontró el contenedor memeContainer en el DOM.');
+        }
+        if (!stopProfeBtn) {
+            console.error('[Profe] No se encontró el botón stopProfeBtn en el DOM.');
+        }
+
+        if (audioProfe) {
+            audioProfe.addEventListener('loadstart', () => logProfe('Carga de audio iniciada.'));
+            audioProfe.addEventListener('canplay', () => logProfe('Audio listo para reproducir.'));
+            audioProfe.addEventListener('play', () => logProfe('Reproduciendo audio.'));
+            audioProfe.addEventListener('pause', () => logProfe('Audio en pausa.'));
+            audioProfe.addEventListener('ended', () => {
+                logProfe('Audio finalizado. Ocultando meme.');
+                setTimeout(() => hideProfeWidgets(), 2000);
+            });
+            audioProfe.addEventListener('error', (event) => {
+                console.error('[Profe] Error en el elemento de audio:', event);
+                alert('No se pudo reproducir el audio del profesor. Verifica el archivo uploads/audio_profe.webm');
+                hideProfeWidgets();
+            });
+            audioProfe.addEventListener('stalled', () => logProfe('La carga del audio se detuvo (stalled).'));
+        }
+
+        if (btnProfe) {
+            btnProfe.addEventListener('click', function() {
+                logProfe('Botón profe pulsado.');
+                if (!audioProfe) {
+                    console.error('[Profe] No se puede reproducir porque audioProfe no existe.');
+                    return;
+                }
+                if (!audioProfe.querySelector('source')?.src) {
+                    console.error('[Profe] Fuente de audio no configurada.');
+                    alert('No se encontró el archivo de audio para el profesor.');
+                    return;
+                }
+                audioProfe.volume = 1.0;
+                const playPromise = audioProfe.play();
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            logProfe('Audio comenzó correctamente.');
+                            memeContainer?.classList.remove('d-none');
+                            stopProfeBtn?.classList.remove('d-none');
+                        })
+                        .catch((error) => {
+                            console.error('[Profe] No se pudo iniciar el audio:', error);
+                            alert('No se pudo iniciar el audio. Revisa permisos o el archivo de audio.');
+                        });
+                } else {
+                    memeContainer?.classList.remove('d-none');
+                    stopProfeBtn?.classList.remove('d-none');
+                }
+            });
+        }
+
+        if (stopProfeBtn) {
+            stopProfeBtn.addEventListener('click', function() {
+                logProfe('Botón cerrar profe pulsado.');
+                stopProfeAudio();
+            });
+        }
     </script>
 
 </body>

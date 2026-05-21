@@ -16,7 +16,67 @@ function hideNotification() {
     notif.classList.add('d-none');
 }
 
-// ==========================
+function normalizeText(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
+function isTechRelatedText(value) {
+    const text = normalizeText(value);
+    const pattern = /\b(celular|smartphone|smartphones|telefono|teléfono|tablet|tablets|tecnologia|tecnología|electronica|electrónica|gadget|gadgets|accesorio|accesorios|cargador|audifono|audífono|auricular|auriculares|estuche|protector|vidrio templado|usb|tipo\s?-?c|bateria|batería|power bank|smartwatch|reloj inteligente|movil|móvil|iphone|android|macbook|computadora|laptop|portatil|portátil|headset|casa|case|repuesto)\b/i;
+    return pattern.test(text);
+}
+
+function validateProductPublishData(values) {
+    const errors = [];
+
+    if (!values.nombre_producto || values.nombre_producto.trim().length < 3) {
+        errors.push('El nombre del producto debe tener al menos 3 caracteres.');
+    }
+    if (!values.marca || values.marca.trim().length < 2) {
+        errors.push('La marca es obligatoria.');
+    }
+    if (!values.modelo || values.modelo.trim().length < 2) {
+        errors.push('El modelo es obligatorio.');
+    }
+    if (values.precio === null || values.precio === undefined || Number.isNaN(values.precio) || values.precio <= 0) {
+        errors.push('El precio debe ser un número mayor a 0.');
+    }
+    if (!Number.isInteger(values.stock) || values.stock < 0) {
+        errors.push('El stock debe ser un número entero mayor o igual a 0.');
+    }
+    if (!values.categoria || values.categoria.trim().length < 3) {
+        errors.push('La categoría es obligatoria.');
+    }
+    if (!values.descripcion || values.descripcion.trim().length < 20) {
+        errors.push('La descripción debe tener al menos 20 caracteres.');
+    }
+
+    const techRelated = isTechRelatedText(values.categoria) ||
+        isTechRelatedText(values.nombre_producto) ||
+        isTechRelatedText(values.modelo) ||
+        isTechRelatedText(values.descripcion);
+
+    if (!techRelated) {
+        errors.push('El producto debe relacionarse con celulares o tecnología. Usa una categoría y descripción de tecnología.');
+    }
+
+    if (values.tipo_producto === 'accesorio') {
+        if (!values.tipo_accesorio || values.tipo_accesorio.trim().length < 3) {
+            errors.push('Debes indicar el tipo de accesorio.');
+        }
+    }
+
+    if (values.imageCount === 0) {
+        errors.push('Debes subir al menos una imagen del producto.');
+    }
+    if (values.imageCount > 9) {
+        errors.push('Solo se permiten hasta 9 imágenes.');
+    }
+
+    return errors;
+}
+
+// =========================
 // 🧠 VARIABLES GLOBALES
 // ==========================
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
@@ -54,6 +114,7 @@ async function cargarProductos(search = "", page = 1, limit = pageSize, tipo = "
 
         mostrarProductos(productos);
         renderPagination(totalItems, currentPage, pageSize);
+        renderCarrito();
     } catch (error) {
         console.error("Error cargando productos:", error);
     }
@@ -62,6 +123,18 @@ async function cargarProductos(search = "", page = 1, limit = pageSize, tipo = "
 // =========================
 // 🖼️ MOSTRAR PRODUCTOS
 // =========================
+function normalizeFrontendImage(src) {
+    if (!src || typeof src !== 'string') return src;
+    const trimmed = src.trim();
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
+        return trimmed;
+    }
+    if (trimmed.startsWith('uploads/')) {
+        return '/' + trimmed;
+    }
+    return '/uploads/' + trimmed;
+}
+
 function mostrarProductos(productos) {
     const cont = document.getElementById("productos");
     cont.innerHTML = "";
@@ -76,7 +149,8 @@ function mostrarProductos(productos) {
     }
 
     productos.filter(p => p.stock > 0).forEach(p => {
-        const imagenSrc = p.imagen || (p.imagenes && p.imagenes.length ? p.imagenes[0] : 'https://via.placeholder.com/300');
+        let imagenSrc = p.imagen || (p.imagenes && p.imagenes.length ? p.imagenes[0] : 'https://via.placeholder.com/300');
+        imagenSrc = normalizeFrontendImage(imagenSrc);
 
         cont.innerHTML += `
         <div class="col-md-4 mb-4">
@@ -386,6 +460,21 @@ if (ordenar) {
 // ➕ CREAR PRODUCTO
 // ==========================
 const form = document.getElementById("formProducto");
+const categoriaSelect = document.getElementById('categoria');
+const categoriaOtraInput = document.getElementById('categoriaOtra');
+const categoriaOtraContainer = document.getElementById('categoriaOtraContainer');
+
+if (categoriaSelect) {
+    categoriaSelect.addEventListener('change', () => {
+        if (categoriaSelect.value === 'Otro') {
+            categoriaOtraContainer?.classList.remove('d-none');
+            categoriaOtraInput?.setAttribute('required', 'required');
+        } else {
+            categoriaOtraContainer?.classList.add('d-none');
+            categoriaOtraInput?.removeAttribute('required');
+        }
+    });
+}
 
 if (form) {
 
@@ -398,6 +487,39 @@ if (form) {
             return;
         }
 
+        const tipoProductoValue = document.getElementById('tipoProducto').value;
+        const tipoAccesorioValue = document.getElementById('tipoAccesorio')?.value || '';
+        const parentDeviceValue = document.getElementById('parentDevice')?.value || '';
+        const imagenInput = document.getElementById('imagen');
+        const imagenesInput = document.getElementById('imagenes');
+        const imageCount = (imagenInput?.files?.length || 0) + (imagenesInput?.files?.length || 0);
+
+        const selectedCategory = categoriaSelect?.value === 'Otro' ? (categoriaOtraInput?.value || '') : (categoriaSelect?.value || '');
+
+        const selectedCategory = categoriaSelect?.value === 'Otro' ? (categoriaOtraInput?.value || '') : (categoriaSelect?.value || '');
+
+        const productPayload = {
+            nombre_producto: document.getElementById('nombre').value,
+            marca: document.getElementById('marca').value,
+            modelo: document.getElementById('modelo').value,
+            precio: Number(document.getElementById('precio').value),
+            stock: Number(document.getElementById('stock').value),
+            descripcion: document.getElementById('descripcion').value,
+            categoria: selectedCategory,
+            tipo_producto: tipoProductoValue,
+            tipo_accesorio: tipoAccesorioValue,
+            parent_device_name: parentDeviceValue,
+            imageCount
+        };
+
+        const validationErrors = validateProductPublishData(productPayload);
+        if (validationErrors.length > 0) {
+            const mensaje = validationErrors.join(' ');
+            console.error('Validación de publicación fallida:', validationErrors);
+            showNotification(mensaje);
+            return;
+        }
+
         const formData = new FormData();
         formData.append('id_usuario', usuario.id_usuario);
         formData.append('nombre_producto', document.getElementById("nombre").value);
@@ -406,8 +528,8 @@ if (form) {
         formData.append('precio', Number(document.getElementById("precio").value));
         formData.append('stock', Number(document.getElementById("stock").value));
         formData.append('tipo_producto', document.getElementById("tipoProducto").value);
+        formData.append('categoria', selectedCategory);
         
-        const imagenInput = document.getElementById("imagen");
         if (imagenInput.files[0]) {
             formData.append('imagen', imagenInput.files[0]);
         }
@@ -424,7 +546,7 @@ if (form) {
         formData.append('condicion', document.getElementById('condicion').value);
         formData.append('color', document.getElementById('color').value);
         formData.append('almacenamiento', document.getElementById('almacenamiento').value);
-        formData.append('categoria', document.getElementById('categoria').value);
+        formData.append('categoria', selectedCategory);
         const ship = document.getElementById('shipping_cost').value;
         if (ship) formData.append('shipping_cost', ship);
         const back = document.getElementById('allow_backorder').checked;
@@ -708,6 +830,8 @@ if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
         console.log("Logout clicked");
         localStorage.removeItem("usuario");
+        localStorage.removeItem("carrito");
+        carrito = [];
 
         window.location.href =
             "login.html";
@@ -764,7 +888,6 @@ if (!usuario) {
     cargarPublicidadDestacada();
     cargarModelosCelulares();
     cargarProductos("", 1, pageSize);
-    renderCarrito();
 }
 
 // Waves toggle control
@@ -772,15 +895,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleBtn = document.getElementById('toggleWavesBtn');
     if (!toggleBtn) return;
 
-    // initialize state from localStorage
-    const wavesOff = localStorage.getItem('wavesOff') === '1';
-    if (wavesOff) document.body.classList.add('waves-off');
+    // initialize state from localStorage or default off
+    const wavesOff = localStorage.getItem('wavesOff') !== '0';
+    if (wavesOff) {
+        document.body.classList.add('waves-off');
+    }
     toggleBtn.textContent = `Olas: ${wavesOff ? 'Off' : 'On'}`;
+    console.debug('[Waves] inicializado, estado:', wavesOff ? 'Off' : 'On');
 
     toggleBtn.addEventListener('click', () => {
         const isOff = document.body.classList.toggle('waves-off');
         toggleBtn.textContent = `Olas: ${isOff ? 'Off' : 'On'}`;
         localStorage.setItem('wavesOff', isOff ? '1' : '0');
+        console.debug('[Waves] toggle clicked, new state:', isOff ? 'Off' : 'On');
     });
 });
 
