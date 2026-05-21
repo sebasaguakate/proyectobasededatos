@@ -12,8 +12,16 @@ if (usuarioInfo && usuario) {
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('usuario');
-        window.location.href = 'login.html';
+        console.log('[Producto] Logout clicked');
+        try {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('carrito');
+            console.log('[Producto] LocalStorage limpiado, redirigiendo...');
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('[Producto] Error en logout:', error);
+            alert('Error al cerrar sesión');
+        }
     });
 }
 

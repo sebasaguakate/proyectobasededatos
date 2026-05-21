@@ -28,14 +28,29 @@ if (!usuario) {
     window.location.href = 'login.html';
 }
 
+// Validar que el usuario tiene los datos necesarios
+if (!usuario.id_usuario) {
+    console.error('Usuario sin id_usuario:', usuario);
+    localStorage.removeItem('usuario');
+    window.location.href = 'login.html';
+}
+
 if (usuarioInfo) {
     usuarioInfo.textContent = `Hola, ${usuario.nombre}`;
 }
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('usuario');
-        window.location.href = 'login.html';
+        console.log('[Dashboard] Logout clicked');
+        try {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('carrito');
+            console.log('[Dashboard] LocalStorage limpiado, redirigiendo a login...');
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('[Dashboard] Error en logout:', error);
+            alert('Error al cerrar sesión. Intenta de nuevo.');
+        }
     });
 }
 
@@ -76,8 +91,18 @@ async function loadMisProductos() {
     sectionProductos.innerHTML = '<div class="text-center py-5 text-muted">Cargando productos...</div>';
 
     try {
-        const res = await fetch(`${window.location.origin}/productos/mis-productos/${usuario.id_usuario}`);
+        const url = `${window.location.origin}/productos/mis-productos/${usuario.id_usuario}`;
+        console.log('[Dashboard] Cargando productos desde:', url);
+        
+        const res = await fetch(url);
+        
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
         const data = await res.json();
+        console.log('[Dashboard] Respuesta recibida:', data);
+        
         const productos = data.rows || [];
         misProductos = productos;
 
@@ -115,8 +140,8 @@ async function loadMisProductos() {
                 + '</div>';
         }).join('');
     } catch (error) {
-        console.error(error);
-        sectionProductos.innerHTML = '<div class="alert alert-danger">Error cargando tus productos.</div>';
+        console.error('[Dashboard] Error cargando productos:', error);
+        sectionProductos.innerHTML = `<div class="alert alert-danger">Error cargando tus productos: ${error.message}</div>`;
     }
 }
 

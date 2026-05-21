@@ -169,8 +169,15 @@ cargarPerfil();
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        localStorage.removeItem('usuario');
-        localStorage.removeItem('carrito');
-        window.location.href = 'login.html';
+        console.log('[Perfil] Logout clicked');
+        try {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('carrito');
+            console.log('[Perfil] LocalStorage limpiado, redirigiendo...');
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('[Perfil] Error en logout:', error);
+            alert('Error al cerrar sesión');
+        }
     });
 }

@@ -20,8 +20,16 @@ if (usuarioInfoPub) {
 
 if (logoutBtnPub) {
     logoutBtnPub.addEventListener('click', () => {
-        localStorage.removeItem('usuario');
-        window.location.href = 'login.html';
+        console.log('[Publicidad] Logout clicked');
+        try {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('carrito');
+            console.log('[Publicidad] LocalStorage limpiado, redirigiendo...');
+            window.location.href = 'login.html';
+        } catch (error) {
+            console.error('[Publicidad] Error en logout:', error);
+            alert('Error al cerrar sesión');
+        }
     });
 }
 

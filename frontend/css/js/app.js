@@ -496,8 +496,6 @@ if (form) {
 
         const selectedCategory = categoriaSelect?.value === 'Otro' ? (categoriaOtraInput?.value || '') : (categoriaSelect?.value || '');
 
-        const selectedCategory = categoriaSelect?.value === 'Otro' ? (categoriaOtraInput?.value || '') : (categoriaSelect?.value || '');
-
         const productPayload = {
             nombre_producto: document.getElementById('nombre').value,
             marca: document.getElementById('marca').value,
@@ -534,7 +532,6 @@ if (form) {
             formData.append('imagen', imagenInput.files[0]);
         }
 
-        const imagenesInput = document.getElementById("imagenes");
         if (imagenesInput && imagenesInput.files.length > 0) {
             for (const file of imagenesInput.files) {
                 formData.append('imagenes', file);
@@ -829,12 +826,16 @@ if (logoutBtn) {
 
     logoutBtn.addEventListener("click", () => {
         console.log("Logout clicked");
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("carrito");
-        carrito = [];
-
-        window.location.href =
-            "login.html";
+        try {
+            localStorage.removeItem("usuario");
+            localStorage.removeItem("carrito");
+            carrito = [];
+            console.log("LocalStorage limpiado, redirigiendo...");
+            window.location.href = "login.html";
+        } catch (error) {
+            console.error("Error en logout:", error);
+            alert("Error al cerrar sesión");
+        }
     });
 }
 
@@ -993,3 +994,26 @@ async function cargarModelosCelulares() {
         container.innerHTML = '<div class="text-muted">Error cargando modelos</div>';
     }
 }
+
+// ==========================
+// 🌊 WAVES TOGGLE CONTROL
+// ==========================
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('toggleWavesBtn');
+    if (!toggleBtn) return;
+
+    // initialize state from localStorage or default off
+    const wavesOff = localStorage.getItem('wavesOff') !== '0';
+    if (wavesOff) {
+        document.body.classList.add('waves-off');
+    }
+    toggleBtn.textContent = `Olas: ${wavesOff ? 'Off' : 'On'}`;
+    console.debug('[Waves] inicializado, estado:', wavesOff ? 'Off' : 'On');
+
+    toggleBtn.addEventListener('click', () => {
+        const isOff = document.body.classList.toggle('waves-off');
+        toggleBtn.textContent = `Olas: ${isOff ? 'Off' : 'On'}`;
+        localStorage.setItem('wavesOff', isOff ? '1' : '0');
+        console.debug('[Waves] toggle clicked, new state:', isOff ? 'Off' : 'On');
+    });
+});
