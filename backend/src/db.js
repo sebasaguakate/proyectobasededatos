@@ -178,7 +178,7 @@ async function initDatabase() {
                 FOREIGN KEY (id_producto) REFERENCES productos(id_producto)
             )
         `);
-
+        
         await connection.query(`
             CREATE TABLE IF NOT EXISTS publicidades (
                 id_publicidad INT PRIMARY KEY AUTO_INCREMENT,
