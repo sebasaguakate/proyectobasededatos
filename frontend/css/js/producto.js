@@ -12,16 +12,8 @@ if (usuarioInfo && usuario) {
 
 if (logoutBtn) {
     logoutBtn.addEventListener('click', () => {
-        console.log('[Producto] Logout clicked');
-        try {
-            localStorage.removeItem('usuario');
-            localStorage.removeItem('carrito');
-            console.log('[Producto] LocalStorage limpiado, redirigiendo...');
-            window.location.href = 'login.html';
-        } catch (error) {
-            console.error('[Producto] Error en logout:', error);
-            alert('Error al cerrar sesión');
-        }
+        localStorage.removeItem('usuario');
+        window.location.href = 'login.html';
     });
 }
 
@@ -54,21 +46,16 @@ function cargarProducto() {
         });
 }
 
-function normalizeFrontendImage(src) {
-    if (!src || typeof src !== 'string') return src;
-    const trimmed = src.trim();
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
-        return trimmed;
-    }
-    if (trimmed.startsWith('uploads/')) {
-        return '/' + trimmed;
-    }
-    return '/uploads/' + trimmed;
-}
-
 function renderProducto(product) {
-    const imagenes = (product.imagenes && product.imagenes.length ? product.imagenes : (product.imagen ? [product.imagen] : [])).map(normalizeFrontendImage);
-    const mainImage = imagenes[0] || 'https://via.placeholder.com/500';
+    function resolveImage(src) {
+        if (!src) return 'https://via.placeholder.com/500';
+        if (/^https?:\/\//i.test(src)) return src;
+        if (src.startsWith('/')) return window.location.origin + src;
+        return src;
+    }
+
+    const imagenes = product.imagenes && product.imagenes.length ? product.imagenes : (product.imagen ? [product.imagen] : []);
+    const mainImage = resolveImage(imagenes[0]) || 'https://via.placeholder.com/500';
 
     productoContainer.innerHTML = `
         <div class="col-lg-6 mb-4">
@@ -106,7 +93,8 @@ function renderProducto(product) {
 
     const gallery = document.getElementById('gallery');
     if (imagenes.length > 0) {
-        imagenes.forEach(src => {
+        imagenes.forEach(srcRaw => {
+            const src = resolveImage(srcRaw);
             gallery.innerHTML += `
                 <div class="col-4">
                     <img src="${src}" class="img-fluid rounded cursor-pointer" style="height:90px; object-fit:cover;" alt="Imagen secundaria" onclick="document.getElementById('mainImage').src='${src}'">
