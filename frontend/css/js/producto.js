@@ -51,7 +51,9 @@ function renderProducto(product) {
         if (!src) return 'https://via.placeholder.com/500';
         if (/^https?:\/\//i.test(src)) return src;
         if (src.startsWith('/')) return window.location.origin + src;
-        return src;
+        // filename without any slash -> assume it's in /uploads
+        if (!src.includes('/')) return window.location.origin + '/uploads/' + src;
+        return window.location.origin + '/' + src;
     }
 
     const imagenes = product.imagenes && product.imagenes.length ? product.imagenes : (product.imagen ? [product.imagen] : []);

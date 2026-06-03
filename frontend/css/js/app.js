@@ -80,7 +80,9 @@ function mostrarProductos(productos) {
         if (/^https?:\/\//i.test(src)) return src;
         // relative path starting with /uploads or similar
         if (src.startsWith('/')) return window.location.origin + src;
-        return src;
+        // filename without any slash -> assume it's in /uploads
+        if (!src.includes('/')) return window.location.origin + '/uploads/' + src;
+        return window.location.origin + '/' + src;
     }
 
     productos.filter(p => p.stock > 0).forEach(p => {
