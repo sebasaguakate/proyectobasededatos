@@ -710,5 +710,30 @@ router.get('/debug/image-status', async (req, res) => {
     }
 });
 
+// =========================
+// DEBUG: listar archivos en /uploads
+// =========================
+router.get('/debug/uploads-files', async (req, res) => {
+    try {
+        const uploadsDir = path.join(__dirname, '../../../frontend/uploads');
+        let files = [];
+        let exists = false;
+
+        if (fs.existsSync(uploadsDir)) {
+            exists = true;
+            files = fs.readdirSync(uploadsDir);
+        }
+
+        res.json({
+            uploadsDir,
+            exists,
+            files,
+            count: files.length
+        });
+    } catch (err) {
+        console.error('Error debug uploads-files:', err);
+        res.status(500).json({ success: false, message: err.message || 'error' });
+    }
+});
 
 module.exports = router;
