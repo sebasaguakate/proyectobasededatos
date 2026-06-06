@@ -5,8 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
-  "start": "node src/index.js",
-  "update-image-urls": "node scripts/update_image_urls.js"
+    "start": "node src/index.js",
+    "update-image-urls": "node scripts/update_image_urls.js",
+    "seed-users": "node scripts/seed_users.js",
+    "seed-marketplace": "node scripts/seed_marketplace.js",
+    "seed-all": "npm run seed-users && npm run seed-marketplace"
   },
   "keywords": [],
   "author": "",
